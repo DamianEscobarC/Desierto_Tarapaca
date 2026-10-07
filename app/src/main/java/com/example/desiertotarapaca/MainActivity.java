@@ -12,6 +12,10 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import android.widget.ImageView;
+
 public class MainActivity extends AppCompatActivity {
 
     private LinearLayout cardRegistrarServicio, cardConsultarRegistros, cardInventario;
@@ -21,6 +25,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvMesAnio, tvRangoSemana, btnSemanaAnterior, btnSemanaSiguiente;
     private TextView[] tvDias = new TextView[7];
     private Calendar calendarioActual;
+    private DrawerLayout drawerLayout;
+    private ImageView btnMenuHamburguesa, btnCerrarDrawer;
+    private LinearLayout navItemMiJornada, navItemMiCuenta, navItemHistoriales, navItemSincronizacion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +74,35 @@ public class MainActivity extends AppCompatActivity {
 
         btnFinalizarDia.setOnClickListener(v -> {
             Toast.makeText(this, "Generando reporte de cierre PDF...", Toast.LENGTH_LONG).show();
+        });
+
+        drawerLayout = findViewById(R.id.drawerLayout);
+        btnMenuHamburguesa = findViewById(R.id.btnMenuHamburguesa);
+        btnCerrarDrawer = findViewById(R.id.btnCerrarDrawer);
+
+        btnMenuHamburguesa.setOnClickListener(v -> {
+            drawerLayout.openDrawer(GravityCompat.START);
+        });
+
+        btnCerrarDrawer.setOnClickListener(v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        });
+
+        navItemMiJornada = findViewById(R.id.navItemMiJornada);
+        navItemMiJornada.setOnClickListener(v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        });
+
+        navItemMiCuenta = findViewById(R.id.navItemMiCuenta);
+        navItemMiCuenta.setOnClickListener(v -> {
+            Toast.makeText(this, "Perfil de operador", Toast.LENGTH_SHORT).show();
+            drawerLayout.closeDrawer(GravityCompat.START);
+        });
+
+        navItemSincronizacion = findViewById(R.id.navItemSincronizacion);
+        navItemSincronizacion.setOnClickListener(v -> {
+            Toast.makeText(this, "Comprobando sincronización offline...", Toast.LENGTH_SHORT).show();
+            drawerLayout.closeDrawer(GravityCompat.START);
         });
     }
 
