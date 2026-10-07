@@ -1,24 +1,36 @@
 package com.example.desiertotarapaca;
 
 import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
+
+    private LinearLayout cardRegistrarServicio, cardConsultarRegistros, cardInventario;
+    private LinearLayout cardDirectorioClientes, cardMapaGps, cardRuta;
+    private Button btnFinalizarDia;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+
+        cardRegistrarServicio = findViewById(R.id.cardRegistrarServicio);
+        cardConsultarRegistros = findViewById(R.id.cardConsultarRegistros);
+        cardInventario = findViewById(R.id.cardInventario);
+        cardDirectorioClientes = findViewById(R.id.cardDirectorioClientes);
+        cardMapaGps = findViewById(R.id.cardMapaGps);
+        cardRuta = findViewById(R.id.cardRuta);
+        btnFinalizarDia = findViewById(R.id.btnFinalizarDia);
+
+        cardRegistrarServicio.setOnClickListener(v -> {
+            Toast.makeText(this, "Abriendo formulario de servicio...", Toast.LENGTH_SHORT).show();
+        });
+
+        btnFinalizarDia.setOnClickListener(v -> {
+            Toast.makeText(this, "Generando reporte de cierre PDF/Excel...", Toast.LENGTH_LONG).show();
         });
     }
 }
