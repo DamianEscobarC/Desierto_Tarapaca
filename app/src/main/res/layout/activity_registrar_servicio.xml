@@ -141,7 +141,7 @@
                     android:layout_marginStart="10dp"
                     android:background="@drawable/bg_green_tile"
                     android:paddingHorizontal="16dp"
-                    android:text="Fijar GPS"
+                    android:text="Guardar GPS"
                     android:textColor="@color/text_light"
                     android:textSize="12sp"
                     android:textStyle="bold" />
