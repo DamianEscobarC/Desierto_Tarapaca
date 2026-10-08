@@ -15,7 +15,7 @@ import java.util.Locale;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import android.widget.ImageView;
-
+import android.content.Intent;
 public class MainActivity extends AppCompatActivity {
 
     private LinearLayout cardRegistrarServicio, cardConsultarRegistros, cardInventario;
@@ -68,9 +68,18 @@ public class MainActivity extends AppCompatActivity {
             actualizarCalendarioSemanal();
         });
 
-        cardRegistrarServicio.setOnClickListener(v -> {
-            Toast.makeText(this, "Abriendo formulario de servicio...", Toast.LENGTH_SHORT).show();
-        });
+        if (cardRegistrarServicio != null) {
+            cardRegistrarServicio.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, RegistrarServicioActivity.class);
+                startActivity(intent);
+            });
+        }
+        if (cardDirectorioClientes != null) {
+            cardDirectorioClientes.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, DirectorioClientesActivity.class);
+                startActivity(intent);
+            });
+        }
 
         btnFinalizarDia.setOnClickListener(v -> {
             Toast.makeText(this, "Generando reporte de cierre PDF...", Toast.LENGTH_LONG).show();
@@ -154,14 +163,16 @@ public class MainActivity extends AppCompatActivity {
         if (navItemHistoriales != null && drawerLayout != null) {
             navItemHistoriales.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Historial de servicios y reportes", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, HistorialActivity.class);
+                startActivity(intent);
             });
         }
 
         if (navItemConfiguracion != null && drawerLayout != null) {
             navItemConfiguracion.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Preferencias de la aplicación", Toast.LENGTH_SHORT).show();
+                android.content.Intent intent = new android.content.Intent(MainActivity.this, ConfiguracionActivity.class);
+                startActivity(intent);
             });
         }
 
