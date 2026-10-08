@@ -1,5 +1,7 @@
 package com.example.desiertotarapaca;
 
+import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -10,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.List;
 public class HistorialActivity extends AppCompatActivity {
 
     public static class RegistroServicio {
+        public long id;
         public String numeroOt;
         public String tipoTrabajo;
         public String faenaCliente;
@@ -26,8 +28,9 @@ public class HistorialActivity extends AppCompatActivity {
         public String descripcion;
         public boolean firmado;
 
-        public RegistroServicio(String numeroOt, String tipoTrabajo, String faenaCliente,
+        public RegistroServicio(long id, String numeroOt, String tipoTrabajo, String faenaCliente,
                                 String fechaHora, String descripcion, boolean firmado) {
+            this.id = id;
             this.numeroOt = numeroOt;
             this.tipoTrabajo = tipoTrabajo;
             this.faenaCliente = faenaCliente;
@@ -43,12 +46,15 @@ public class HistorialActivity extends AppCompatActivity {
     private LinearLayout layoutEstadoVacio;
     private LinearLayout contenedorHistorial;
 
+    private DbHelper dbHelper;
     private List<RegistroServicio> listaRegistros = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_historial);
+
+        dbHelper = new DbHelper(this);
 
         btnVolverHistorial = findViewById(R.id.btnVolverHistorial);
         tvTotalServiciosMes = findViewById(R.id.tvTotalServiciosMes);
@@ -59,8 +65,6 @@ public class HistorialActivity extends AppCompatActivity {
         contenedorHistorial = findViewById(R.id.contenedorHistorial);
 
         btnVolverHistorial.setOnClickListener(v -> finish());
-
-        renderizarHistorial("");
 
         etBuscadorHistorial.addTextChangedListener(new TextWatcher() {
             @Override
@@ -76,16 +80,55 @@ public class HistorialActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        cargarDatosDesdeBBDD();
+        String filtroActual = etBuscadorHistorial.getText() != null ?
+                etBuscadorHistorial.getText().toString().toLowerCase().trim() : "";
+        renderizarHistorial(filtroActual);
+    }
+
+    private void cargarDatosDesdeBBDD() {
+        listaRegistros.clear();
+        Cursor cursor = dbHelper.obtenerTodosLosServicios();
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int idxId = cursor.getColumnIndex(DbHelper.COL_ID);
+            int idxOt = cursor.getColumnIndex(DbHelper.COL_OT);
+            int idxCli = cursor.getColumnIndex(DbHelper.COL_CLIENTE);
+            int idxTipo = cursor.getColumnIndex(DbHelper.COL_TIPO);
+            int idxDesc = cursor.getColumnIndex(DbHelper.COL_DESCRIPCION);
+            int idxFecha = cursor.getColumnIndex(DbHelper.COL_FECHA);
+            int idxFirm = cursor.getColumnIndex(DbHelper.COL_FIRMADO);
+
+            do {
+                long id = (idxId != -1) ? cursor.getLong(idxId) : 0;
+                String ot = (idxOt != -1) ? cursor.getString(idxOt) : "";
+                String cli = (idxCli != -1) ? cursor.getString(idxCli) : "";
+                String tipo = (idxTipo != -1) ? cursor.getString(idxTipo) : "";
+                String desc = (idxDesc != -1) ? cursor.getString(idxDesc) : "";
+                String fecha = (idxFecha != -1) ? cursor.getString(idxFecha) : "";
+                boolean firmado = (idxFirm != -1) && (cursor.getInt(idxFirm) == 1);
+
+                listaRegistros.add(new RegistroServicio(id, ot, tipo, cli, fecha, desc, firmado));
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+    }
+
     private void renderizarHistorial(String filtro) {
         contenedorHistorial.removeAllViews();
 
         int colorMain = Color.parseColor("#1B2E24");
         int colorMuted = Color.parseColor("#6B7F74");
-        int colorGreenPrimary = Color.parseColor("#2D5A43");
-
         int serviciosVisibles = 0;
+        int firmadosCount = 0;
 
         for (RegistroServicio item : listaRegistros) {
+            if (item.firmado) firmadosCount++;
+
             boolean coincide = filtro.isEmpty() ||
                     item.numeroOt.toLowerCase().contains(filtro) ||
                     item.tipoTrabajo.toLowerCase().contains(filtro) ||
@@ -119,15 +162,14 @@ public class HistorialActivity extends AppCompatActivity {
                 tvTitulo.setTextSize(14f);
                 tvTitulo.setTypeface(null, Typeface.BOLD);
                 tvTitulo.setTextColor(colorMain);
-                LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
+                tvTitulo.setLayoutParams(new LinearLayout.LayoutParams(
                         0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f
-                );
-                tvTitulo.setLayoutParams(titleParams);
+                ));
                 headerCard.addView(tvTitulo);
 
                 TextView tvBadge = new TextView(this);
                 if (item.firmado) {
-                    tvBadge.setText("✓ Firmado");
+                    tvBadge.setText("✓ Guardado");
                     tvBadge.setTextColor(Color.parseColor("#137333"));
                     tvBadge.setBackgroundColor(Color.parseColor("#E6F4EA"));
                 } else {
@@ -165,20 +207,24 @@ public class HistorialActivity extends AppCompatActivity {
                     card.addView(tvDesc);
                 }
 
-                card.setOnClickListener(v ->
-                        Toast.makeText(this, "Detalle de " + item.numeroOt, Toast.LENGTH_SHORT).show()
-                );
+                card.setOnClickListener(v -> {
+                    Intent intent = new Intent(HistorialActivity.this, RegistrarServicioActivity.class);
+                    intent.putExtra("ID_SERVICIO", item.id);
+                    startActivity(intent);
+                });
 
                 contenedorHistorial.addView(card);
             }
         }
 
-        if (serviciosVisibles == 0) {
-            layoutEstadoVacio.setVisibility(View.VISIBLE);
-        } else {
-            layoutEstadoVacio.setVisibility(View.GONE);
-        }
+        layoutEstadoVacio.setVisibility(serviciosVisibles == 0 ? View.VISIBLE : View.GONE);
 
         tvTotalServiciosMes.setText(String.valueOf(listaRegistros.size()));
+        if (!listaRegistros.isEmpty()) {
+            int porcentaje = (firmadosCount * 100) / listaRegistros.size();
+            tvPorcentajeFirmados.setText(porcentaje + "%");
+        } else {
+            tvPorcentajeFirmados.setText("0%");
+        }
     }
 }
