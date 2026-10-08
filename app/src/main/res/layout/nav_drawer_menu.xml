@@ -1,467 +1,464 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="320dp"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
     android:layout_height="match_parent"
     android:layout_gravity="start"
-    android:background="@color/card_white"
-    android:fillViewport="true">
+    android:background="#FFFFFF"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="36dp"
+    android:paddingBottom="24dp">
+
+    <RelativeLayout
+        android:id="@+id/btnCerrarDrawer"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_avatar_circle"
+        android:backgroundTint="#2D3748"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="✕"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="22dp"
-        android:paddingTop="36dp"
-        android:paddingBottom="24dp">
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <ImageView
-            android:id="@+id/btnCerrarDrawer"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/bg_avatar_circle"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="9dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="@color/text_light" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+        <RelativeLayout
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@drawable/bg_avatar_circle">
 
             <TextView
                 android:id="@+id/tvAvatarIniciales"
-                android:layout_width="54dp"
-                android:layout_height="54dp"
-                android:background="@drawable/bg_avatar_circle"
-                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
                 android:text="AJ"
-                android:textColor="@color/text_light"
-                android:textSize="17sp"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvNombreUsuario"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Alex Jelves"
+                android:textColor="#1B2E24"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvCargoUsuario"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Técnico de terreno"
+                android:textColor="#6B7F74"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="EQUIPO OPERACIONES · ZONA CENTRO"
+        android:textColor="#6B7F74"
+        android:textSize="10sp"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp"
+        android:background="#E2E8F0" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/navItemMiJornada"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_nav_item_selected"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="☰"
+                    android:textColor="#1B2E24"
+                    android:textSize="18sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mi jornada"
+                        android:textColor="#1B2E24"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Volver al resumen del día"
+                        android:textColor="#6B7F74"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#A0AEC0"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/navItemMiCuenta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👤"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mi Cuenta"
+                        android:textColor="#1B2E24"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Perfil y datos personales"
+                        android:textColor="#6B7F74"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#A0AEC0"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/navItemHistoriales"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🕒"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Historiales"
+                        android:textColor="#1B2E24"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Jornadas y movimientos"
+                        android:textColor="#6B7F74"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#A0AEC0"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/navItemConfiguracion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔧"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Configuración"
+                        android:textColor="#1B2E24"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Preferencias de la aplicación"
+                        android:textColor="#6B7F74"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#A0AEC0"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="6dp"
+                android:layout_marginStart="14dp"
+                android:text="MÁS FUNCIONES"
+                android:textColor="#6B7F74"
+                android:textSize="10sp"
                 android:textStyle="bold" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:id="@+id/navItemDocumentos"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvNombreUsuarioDrawer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Alex Jelves"
-                    android:textColor="@color/text_main"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Técnico de terreno"
-                    android:textColor="@color/text_muted"
-                    android:textSize="13sp" />
+                    android:text="📋"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Documentos"
+                        android:textColor="#1B2E24"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fichas técnicas y protocolos"
+                        android:textColor="#6B7F74"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#A0AEC0"
+                    android:textSize="18sp" />
             </LinearLayout>
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:letterSpacing="0.06"
-            android:text="EQUIPO OPERACIONES · ZONA CENTRO"
-            android:textColor="@color/text_muted"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginVertical="18dp"
-            android:background="@color/border_light" />
-
-        <LinearLayout
-            android:id="@+id/navItemMiJornada"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_nav_item_selected"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="12dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@android:drawable/ic_menu_sort_by_size"
-                app:tint="@color/text_main" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:id="@+id/navItemSincronizacion"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mi jornada"
-                    android:textColor="@color/text_main"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:text="🔄"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sincronización"
+                        android:textColor="#1B2E24"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Estado de datos guardados"
+                        android:textColor="#6B7F74"
+                        android:textSize="11sp" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Volver al resumen del día"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
+                    android:text="›"
+                    android:textColor="#A0AEC0"
+                    android:textSize="18sp" />
             </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="›"
-                android:textColor="@color/text_muted"
-                android:textSize="18sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/navItemMiCuenta"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@android:drawable/ic_menu_myplaces"
-                app:tint="@color/text_main" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:id="@+id/navItemSoporte"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mi Cuenta"
-                    android:textColor="@color/text_main"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:text="❓"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Soporte"
+                        android:textColor="#1B2E24"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ayuda para tu trabajo en terreno"
+                        android:textColor="#6B7F74"
+                        android:textSize="11sp" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Perfil y datos personales"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
+                    android:text="›"
+                    android:textColor="#A0AEC0"
+                    android:textSize="18sp" />
             </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="›"
-                android:textColor="@color/text_muted"
-                android:textSize="18sp" />
         </LinearLayout>
+    </ScrollView>
 
-        <LinearLayout
-            android:id="@+id/navItemHistoriales"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@android:drawable/ic_menu_recent_history"
-                app:tint="@color/text_main" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Historiales"
-                    android:textColor="@color/text_main"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Jornadas y movimientos"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="›"
-                android:textColor="@color/text_muted"
-                android:textSize="18sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/navItemConfiguracion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@android:drawable/ic_menu_preferences"
-                app:tint="@color/text_main" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Configuración"
-                    android:textColor="@color/text_main"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Preferencias de la aplicación"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="›"
-                android:textColor="@color/text_muted"
-                android:textSize="18sp" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
-            android:letterSpacing="0.06"
-            android:text="MÁS FUNCIONES"
-            android:textColor="@color/text_muted"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/navItemDocumentos"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@android:drawable/ic_menu_agenda"
-                app:tint="@color/text_main" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Documentos"
-                    android:textColor="@color/text_main"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Fichas técnicas y protocolos"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="›"
-                android:textColor="@color/text_muted"
-                android:textSize="18sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/navItemSincronizacion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@android:drawable/ic_popup_sync"
-                app:tint="@color/text_main" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Sincronización"
-                    android:textColor="@color/text_main"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Estado de datos guardados"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="›"
-                android:textColor="@color/text_muted"
-                android:textSize="18sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/navItemSoporte"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@android:drawable/ic_menu_help"
-                app:tint="@color/text_main" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Soporte"
-                    android:textColor="@color/text_main"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ayuda para tu trabajo en terreno"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="›"
-                android:textColor="@color/text_muted"
-                android:textSize="18sp" />
-        </LinearLayout>
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="32dp" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/border_light" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:text="☁  Todos tus datos están guardados"
-            android:textColor="@color/text_muted"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Aplicación de terreno · v2.4.0"
-            android:textColor="@color/text_muted"
-            android:textSize="11sp" />
-
-    </LinearLayout>
-</ScrollView>
+</LinearLayout>

@@ -76,34 +76,9 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Generando reporte de cierre PDF...", Toast.LENGTH_LONG).show();
         });
 
-        drawerLayout = findViewById(R.id.drawerLayout);
-        btnMenuHamburguesa = findViewById(R.id.btnMenuHamburguesa);
-        btnCerrarDrawer = findViewById(R.id.btnCerrarDrawer);
 
-        btnMenuHamburguesa.setOnClickListener(v -> {
-            drawerLayout.openDrawer(GravityCompat.START);
-        });
+        configurarMenuHamburguesa();
 
-        btnCerrarDrawer.setOnClickListener(v -> {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        });
-
-        navItemMiJornada = findViewById(R.id.navItemMiJornada);
-        navItemMiJornada.setOnClickListener(v -> {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        });
-
-        navItemMiCuenta = findViewById(R.id.navItemMiCuenta);
-        navItemMiCuenta.setOnClickListener(v -> {
-            Toast.makeText(this, "Perfil de operador", Toast.LENGTH_SHORT).show();
-            drawerLayout.closeDrawer(GravityCompat.START);
-        });
-
-        navItemSincronizacion = findViewById(R.id.navItemSincronizacion);
-        navItemSincronizacion.setOnClickListener(v -> {
-            Toast.makeText(this, "Comprobando sincronización offline...", Toast.LENGTH_SHORT).show();
-            drawerLayout.closeDrawer(GravityCompat.START);
-        });
     }
 
     private void actualizarCalendarioSemanal() {
@@ -141,6 +116,73 @@ public class MainActivity extends AppCompatActivity {
             }
 
             calSemana.add(Calendar.DAY_OF_MONTH, 1);
+        }
+    }
+    private void configurarMenuHamburguesa() {
+        drawerLayout = findViewById(R.id.drawerLayout);
+        android.view.View btnMenuHamburguesa = findViewById(R.id.btnMenuHamburguesa);
+        android.view.View btnCerrarDrawer = findViewById(R.id.btnCerrarDrawer);
+
+        if (btnMenuHamburguesa != null && drawerLayout != null) {
+            btnMenuHamburguesa.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+        }
+
+        if (btnCerrarDrawer != null && drawerLayout != null) {
+            btnCerrarDrawer.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+        }
+
+        android.view.View navItemMiJornada = findViewById(R.id.navItemMiJornada);
+        android.view.View navItemMiCuenta = findViewById(R.id.navItemMiCuenta);
+        android.view.View navItemHistoriales = findViewById(R.id.navItemHistoriales);
+        android.view.View navItemConfiguracion = findViewById(R.id.navItemConfiguracion);
+        android.view.View navItemDocumentos = findViewById(R.id.navItemDocumentos);
+        android.view.View navItemSincronizacion = findViewById(R.id.navItemSincronizacion);
+        android.view.View navItemSoporte = findViewById(R.id.navItemSoporte);
+
+        if (navItemMiJornada != null && drawerLayout != null) {
+            navItemMiJornada.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+        }
+
+        if (navItemMiCuenta != null && drawerLayout != null) {
+            navItemMiCuenta.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(this, "Perfil: Alex Jelves · Técnico de terreno", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (navItemHistoriales != null && drawerLayout != null) {
+            navItemHistoriales.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(this, "Historial de servicios y reportes", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (navItemConfiguracion != null && drawerLayout != null) {
+            navItemConfiguracion.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(this, "Preferencias de la aplicación", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (navItemDocumentos != null && drawerLayout != null) {
+            navItemDocumentos.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(this, "Fichas técnicas y protocolos", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (navItemSincronizacion != null && drawerLayout != null) {
+            navItemSincronizacion.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(this, "Sincronización: Datos al día", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (navItemSoporte != null && drawerLayout != null) {
+            navItemSoporte.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(this, "Contacto soporte: +56 9 8123 4567", Toast.LENGTH_SHORT).show();
+            });
         }
     }
 }
