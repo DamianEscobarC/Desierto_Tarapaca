@@ -12,10 +12,13 @@
     <color name="btn_dark_close">#212529</color>
 
 
-    <color name="text_main">#1F2421</color>
-    <color name="text_muted">#6C757D</color>
+    <color name="green_primary">#2D5A43</color>
+    <color name="text_main">#1B2E24</color>
+    <color name="text_muted">#6B7F74</color>
     <color name="text_light">#FFFFFF</color>
 
 
     <color name="border_light">#E0E0E0</color>
+
+
 </resources>
