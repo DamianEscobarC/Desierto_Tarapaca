@@ -146,7 +146,8 @@ public class MainActivity extends AppCompatActivity {
         if (navItemMiCuenta != null && drawerLayout != null) {
             navItemMiCuenta.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Perfil: Alex Jelves · Técnico de terreno", Toast.LENGTH_SHORT).show();
+                android.content.Intent intent = new android.content.Intent(MainActivity.this, MiCuentaActivity.class);
+                startActivity(intent);
             });
         }
 
