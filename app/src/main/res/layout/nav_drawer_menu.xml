@@ -304,9 +304,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="6dp"
-                android:layout_marginStart="14dp"
                 android:text="MÁS FUNCIONES"
                 android:textColor="#6B7F74"
                 android:textSize="10sp"
