@@ -481,7 +481,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        android:text="Consultar Registros"
+                        android:text="Registrar Tarea para el calendario"
                         android:textColor="@color/text_light"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -489,7 +489,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Servicios guardados"
+                        android:text="Tareas Registradas"
                         android:textColor="@color/green_tile_subtext"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -602,7 +602,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        android:text="Mapa más GPS"
+                        android:text=""
                         android:textColor="@color/text_light"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -610,7 +610,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tu ubicación"
+                        android:text=""
                         android:textColor="@color/green_tile_subtext"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -637,7 +637,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        android:text="Ruta"
+                        android:text=""
                         android:textColor="@color/text_light"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -645,7 +645,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Recorrido del día"
+                        android:text=""
                         android:textColor="@color/green_tile_subtext"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -657,7 +657,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="20dp"
-                android:text="GPS activo  •  Sincronizado hoy"
+                android:text=""
                 android:textColor="@color/text_muted"
                 android:textSize="12sp" />
 
