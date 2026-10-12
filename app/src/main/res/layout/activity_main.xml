@@ -347,52 +347,46 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
                 android:background="@drawable/bg_white_card"
+                android:elevation="2dp"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:padding="16dp">
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/tvTituloHoyTareas"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="HOY · MARTES 6"
+                        android:layout_weight="1"
                         android:textColor="@color/text_main"
                         android:textSize="11sp"
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvCantidadTareasPendientes"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:text="2 tareas pendientes"
                         android:textColor="@color/text_muted"
                         android:textSize="11sp" />
-                </RelativeLayout>
+                </LinearLayout>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginVertical="10dp"
-                    android:background="@color/border_light" />
+                    android:layout_marginVertical="12dp"
+                    android:background="#E2E8F0" />
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/contenedorListaTareas"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="09:00   Fundo Los Olivos               Servicio"
-                    android:textColor="@color/text_main"
-                    android:textSize="13sp" />
+                    android:orientation="vertical" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="11:30   Agrícola San Pedro             Visita"
-                    android:textColor="@color/text_main"
-                    android:textSize="13sp" />
             </LinearLayout>
 
             <RelativeLayout

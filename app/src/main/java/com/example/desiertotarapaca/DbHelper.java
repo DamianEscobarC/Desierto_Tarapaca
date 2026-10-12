@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DesiertoTarapaca.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     public static final String TABLA_SERVICIOS = "servicios";
     public static final String COL_ID = "id";
@@ -29,6 +29,14 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String COL_USER_CARGO = "cargo";
     public static final String COL_USER_TELEFONO = "telefono";
     public static final String COL_USER_DIRECCION = "direccion";
+
+    public static final String TABLA_TAREAS = "tareas";
+    public static final String COL_TAREA_ID = "id";
+    public static final String COL_TAREA_CLIENTE = "cliente";
+    public static final String COL_TAREA_TIPO = "tipo";
+    public static final String COL_TAREA_HORA = "hora";
+    public static final String COL_TAREA_FECHA = "fecha";
+    public static final String COL_TAREA_ESTADO = "estado";
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -56,16 +64,24 @@ public class DbHelper extends SQLiteOpenHelper {
                 COL_USER_TELEFONO + " TEXT, " +
                 COL_USER_DIRECCION + " TEXT)";
         db.execSQL(crearTablaUsuarios);
+
+        String crearTablaTareas = "CREATE TABLE " + TABLA_TAREAS + " (" +
+                COL_TAREA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_TAREA_CLIENTE + " TEXT, " +
+                COL_TAREA_TIPO + " TEXT, " +
+                COL_TAREA_HORA + " TEXT, " +
+                COL_TAREA_FECHA + " TEXT, " +
+                COL_TAREA_ESTADO + " TEXT DEFAULT 'pendiente')";
+        db.execSQL(crearTablaTareas);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_SERVICIOS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_USUARIOS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLA_TAREAS);
         onCreate(db);
     }
-
-
 
     public boolean existeCorreo(String correo) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -95,8 +111,6 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor.close();
         return valido;
     }
-
-
 
     public long insertarServicio(String ot, String cliente, String tipo, String desc, String fecha, boolean firmado) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -161,5 +175,21 @@ public class DbHelper extends SQLiteOpenHelper {
 
         int filas = db.update(TABLA_USUARIOS, cv, COL_USER_CORREO + " = ?", new String[]{correo.toLowerCase().trim()});
         return filas > 0;
+    }
+
+    public boolean insertarTarea(String cliente, String tipo, String hora, String fecha) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_TAREA_CLIENTE, cliente);
+        cv.put(COL_TAREA_TIPO, tipo);
+        cv.put(COL_TAREA_HORA, hora);
+        cv.put(COL_TAREA_FECHA, fecha);
+        cv.put(COL_TAREA_ESTADO, "pendiente");
+        long resultado = db.insert(TABLA_TAREAS, null, cv);
+        return resultado != -1;
+    }
+    public Cursor obtenerTareasPorFecha(String fecha) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLA_TAREAS + " WHERE " + COL_TAREA_FECHA + " = ? ORDER BY " + COL_TAREA_HORA + " ASC", new String[]{fecha});
     }
 }

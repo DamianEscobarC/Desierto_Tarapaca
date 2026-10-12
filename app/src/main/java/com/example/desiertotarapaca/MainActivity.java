@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private DbHelper dbHelper;
     private TextView tvNombreUsuarioDrawer, tvAvatarDrawer;
     private TextView tvCargoUsuarioDrawer;
+    private TextView tvTituloHoyTareas, tvCantidadTareasPendientes;
+    private LinearLayout contenedorListaTareas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,12 +98,26 @@ public class MainActivity extends AppCompatActivity {
 
         configurarMenuHamburguesa();
 
+        tvTituloHoyTareas = findViewById(R.id.tvTituloHoyTareas);
+        tvCantidadTareasPendientes = findViewById(R.id.tvCantidadTareasPendientes);
+        contenedorListaTareas = findViewById(R.id.contenedorListaTareas);
+
+        if (cardConsultarRegistros != null) {
+            cardConsultarRegistros.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, RegistrarTareaActivity.class);
+                startActivity(intent);
+            });
+        }
+
+
     }
     @Override
     protected void onResume() {
         super.onResume();
         cargarDatosUsuarioDrawer();
+        cargarTareasPendientesHoy();
     }
+
 
     private void actualizarCalendarioSemanal() {
         Calendar calSemana = (Calendar) calendarioActual.clone();
@@ -251,5 +267,82 @@ public class MainActivity extends AppCompatActivity {
             return ("" + partes[0].charAt(0) + partes[1].charAt(0)).toUpperCase();
         }
         return ("" + partes[0].charAt(0)).toUpperCase();
+    }
+    private void cargarTareasPendientesHoy() {
+        if (contenedorListaTareas == null || dbHelper == null) return;
+
+        contenedorListaTareas.removeAllViews();
+
+        SimpleDateFormat sdfFecha = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat sdfTitulo = new SimpleDateFormat("EEEE d", new Locale("es", "ES"));
+
+        Calendar cal = Calendar.getInstance();
+        String fechaHoy = sdfFecha.format(cal.getTime());
+        String tituloDia = "HOY · " + sdfTitulo.format(cal.getTime()).toUpperCase();
+
+        if (tvTituloHoyTareas != null) {
+            tvTituloHoyTareas.setText(tituloDia);
+        }
+
+        android.database.Cursor cursor = dbHelper.obtenerTareasPorFecha(fechaHoy);
+        int totalTareas = 0;
+
+        if (cursor != null) {
+            totalTareas = cursor.getCount();
+
+            if (totalTareas == 0) {
+                TextView tvVacio = new TextView(this);
+                tvVacio.setText("No hay tareas programadas para hoy.");
+                tvVacio.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
+                tvVacio.setTextSize(13);
+                tvVacio.setPadding(0, 10, 0, 10);
+                contenedorListaTareas.addView(tvVacio);
+            } else {
+                while (cursor.moveToNext()) {
+                    int idxCliente = cursor.getColumnIndex("cliente");
+                    int idxTipo = cursor.getColumnIndex("tipo");
+                    int idxHora = cursor.getColumnIndex("hora");
+
+                    String cliente = idxCliente != -1 ? cursor.getString(idxCliente) : "";
+                    String tipo = idxTipo != -1 ? cursor.getString(idxTipo) : "";
+                    String hora = idxHora != -1 ? cursor.getString(idxHora) : "";
+
+                    LinearLayout fila = new LinearLayout(this);
+                    fila.setOrientation(LinearLayout.HORIZONTAL);
+                    fila.setLayoutParams(new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT));
+                    fila.setPadding(0, 8, 0, 8);
+
+                    TextView tvHoraItem = new TextView(this);
+                    tvHoraItem.setText(hora);
+                    tvHoraItem.setTextColor(ContextCompat.getColor(this, R.color.text_main));
+                    tvHoraItem.setTextSize(13);
+                    tvHoraItem.setLayoutParams(new LinearLayout.LayoutParams(130, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                    TextView tvClienteItem = new TextView(this);
+                    tvClienteItem.setText(cliente);
+                    tvClienteItem.setTextColor(ContextCompat.getColor(this, R.color.text_main));
+                    tvClienteItem.setTextSize(13);
+                    tvClienteItem.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+                    TextView tvTipoItem = new TextView(this);
+                    tvTipoItem.setText(tipo);
+                    tvTipoItem.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
+                    tvTipoItem.setTextSize(13);
+
+                    fila.addView(tvHoraItem);
+                    fila.addView(tvClienteItem);
+                    fila.addView(tvTipoItem);
+
+                    contenedorListaTareas.addView(fila);
+                }
+            }
+            cursor.close();
+        }
+
+        if (tvCantidadTareasPendientes != null) {
+            tvCantidadTareasPendientes.setText(totalTareas + (totalTareas == 1 ? " tarea pendiente" : " tareas pendientes"));
+        }
     }
 }
