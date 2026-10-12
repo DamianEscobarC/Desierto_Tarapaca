@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvTituloHoyTareas, tvCantidadTareasPendientes;
     private LinearLayout contenedorListaTareas;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,6 +106,14 @@ public class MainActivity extends AppCompatActivity {
         if (cardConsultarRegistros != null) {
             cardConsultarRegistros.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, RegistrarTareaActivity.class);
+                startActivity(intent);
+            });
+        }
+
+        cardInventario = findViewById(R.id.cardInventario);
+        if (cardInventario != null) {
+            cardInventario.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, InventarioQuimicosActivity.class);
                 startActivity(intent);
             });
         }

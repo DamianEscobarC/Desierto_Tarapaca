@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DesiertoTarapaca.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     public static final String TABLA_SERVICIOS = "servicios";
     public static final String COL_ID = "id";
@@ -37,6 +37,13 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String COL_TAREA_HORA = "hora";
     public static final String COL_TAREA_FECHA = "fecha";
     public static final String COL_TAREA_ESTADO = "estado";
+
+    public static final String TABLA_INVENTARIO = "inventario_quimicos";
+    public static final String COL_QUIM_ID = "id";
+    public static final String COL_QUIM_NOMBRE = "nombre";
+    public static final String COL_QUIM_TIPO = "tipo";
+    public static final String COL_QUIM_STOCK = "stock";
+    public static final String COL_QUIM_UNIDAD = "unidad";
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -73,6 +80,14 @@ public class DbHelper extends SQLiteOpenHelper {
                 COL_TAREA_FECHA + " TEXT, " +
                 COL_TAREA_ESTADO + " TEXT DEFAULT 'pendiente')";
         db.execSQL(crearTablaTareas);
+
+        String crearTablaInventario = "CREATE TABLE " + TABLA_INVENTARIO + " (" +
+                COL_QUIM_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_QUIM_NOMBRE + " TEXT, " +
+                COL_QUIM_TIPO + " TEXT, " +
+                COL_QUIM_STOCK + " REAL, " +
+                COL_QUIM_UNIDAD + " TEXT)";
+        db.execSQL(crearTablaInventario);
     }
 
     @Override
@@ -80,6 +95,7 @@ public class DbHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_SERVICIOS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_USUARIOS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_TAREAS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLA_INVENTARIO);
         onCreate(db);
     }
 
@@ -191,5 +207,62 @@ public class DbHelper extends SQLiteOpenHelper {
     public Cursor obtenerTareasPorFecha(String fecha) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLA_TAREAS + " WHERE " + COL_TAREA_FECHA + " = ? ORDER BY " + COL_TAREA_HORA + " ASC", new String[]{fecha});
+    }
+
+    //PRODUCTOS QUIMICOS
+    public boolean insertarProductoQuimico(String nombre, String tipo, double stock, String unidad) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_QUIM_NOMBRE, nombre);
+        cv.put(COL_QUIM_TIPO, tipo);
+        cv.put(COL_QUIM_STOCK, stock);
+        cv.put(COL_QUIM_UNIDAD, unidad);
+        long res = db.insert(TABLA_INVENTARIO, null, cv);
+        return res != -1;
+    }
+
+    public Cursor obtenerInventarioQuimicos(String filtro) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        if (filtro == null || filtro.trim().isEmpty()) {
+            return db.rawQuery("SELECT * FROM " + TABLA_INVENTARIO + " ORDER BY " + COL_QUIM_NOMBRE + " ASC", null);
+        } else {
+            return db.rawQuery("SELECT * FROM " + TABLA_INVENTARIO + " WHERE " + COL_QUIM_NOMBRE + " LIKE ? ORDER BY " + COL_QUIM_NOMBRE + " ASC",
+                    new String[]{"%" + filtro.trim() + "%"});
+        }
+    }
+    public boolean actualizarProductoQuimico(long id, String nombre, String tipo, double stock, String unidad) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_QUIM_NOMBRE, nombre);
+        cv.put(COL_QUIM_TIPO, tipo);
+        cv.put(COL_QUIM_STOCK, stock);
+        cv.put(COL_QUIM_UNIDAD, unidad);
+        int filas = db.update(TABLA_INVENTARIO, cv, COL_QUIM_ID + " = ?", new String[]{String.valueOf(id)});
+        return filas > 0;
+    }
+
+    public boolean consumirStockQuimico(long id, double cantidadUsada) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT " + COL_QUIM_STOCK + " FROM " + TABLA_INVENTARIO + " WHERE " + COL_QUIM_ID + " = ?", new String[]{String.valueOf(id)});
+        if (cursor != null && cursor.moveToFirst()) {
+            double stockActual = cursor.getDouble(0);
+            cursor.close();
+
+            double nuevoStock = stockActual - cantidadUsada;
+
+            if (nuevoStock <= 0) {
+                int eliminados = db.delete(TABLA_INVENTARIO, COL_QUIM_ID + " = ?", new String[]{String.valueOf(id)});
+                return eliminados > 0;
+            } else {
+                ContentValues cv = new ContentValues();
+                cv.put(COL_QUIM_STOCK, nuevoStock);
+                int filas = db.update(TABLA_INVENTARIO, cv, COL_QUIM_ID + " = ?", new String[]{String.valueOf(id)});
+                return filas > 0;
+            }
+        }
+
+        if (cursor != null) cursor.close();
+        return false;
     }
 }
