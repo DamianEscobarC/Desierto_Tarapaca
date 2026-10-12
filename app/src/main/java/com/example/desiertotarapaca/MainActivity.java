@@ -99,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Recargar los datos del usuario por si se actualizaron en MiCuentaActivity
         cargarDatosUsuarioDrawer();
     }
 

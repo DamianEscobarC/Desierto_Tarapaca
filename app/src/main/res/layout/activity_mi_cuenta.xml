@@ -61,10 +61,10 @@
                     android:background="@drawable/bg_avatar_circle">
 
                     <TextView
+                        android:id="@+id/tvAvatarCuenta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
-                        android:text="AJ"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -72,23 +72,23 @@
 
                 <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
                     android:layout_marginStart="14dp"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvNombreCuenta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Alex Jelves"
                         android:textColor="@color/text_main"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvCargoSubtitulo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Técnico de terreno · Zona Centro"
                         android:textColor="@color/text_muted"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -125,10 +125,31 @@
                     android:layout_height="48dp"
                     android:layout_marginTop="6dp"
                     android:background="@drawable/bg_input_field"
+                    android:enabled="false"
+                    android:focusable="false"
                     android:hint="correo@empresa.cl"
                     android:inputType="textEmailAddress"
                     android:paddingHorizontal="14dp"
-                    android:text="alex.jelves@tarapacaoperaciones.cl"
+                    android:textColor="@color/text_muted"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="PROFESIÓN / CARGO"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etCuentaCargo"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_input_field"
+                    android:inputType="textCapWords"
+                    android:paddingHorizontal="14dp"
                     android:textColor="@color/text_main"
                     android:textSize="14sp" />
 
@@ -150,7 +171,6 @@
                     android:hint="+56 9 1234 5678"
                     android:inputType="phone"
                     android:paddingHorizontal="14dp"
-                    android:text="+56 9 8765 4321"
                     android:textColor="@color/text_main"
                     android:textSize="14sp" />
 
@@ -169,10 +189,9 @@
                     android:layout_height="48dp"
                     android:layout_marginTop="6dp"
                     android:background="@drawable/bg_input_field"
-                    android:hint="Calle, número, comuna"
+                    android:hint="Calle, número, comuna o pasaje"
                     android:inputType="textPostalAddress"
                     android:paddingHorizontal="14dp"
-                    android:text="Av. Prat 450, Iquique"
                     android:textColor="@color/text_main"
                     android:textSize="14sp" />
 
@@ -182,7 +201,7 @@
                     android:layout_height="48dp"
                     android:layout_marginTop="24dp"
                     android:background="@drawable/bg_btn_finalizar"
-                    android:text="Guardar Cambios"
+                    android:text="GUARDAR CAMBIOS"
                     android:textColor="@color/text_light"
                     android:textSize="14sp"
                     android:textStyle="bold" />

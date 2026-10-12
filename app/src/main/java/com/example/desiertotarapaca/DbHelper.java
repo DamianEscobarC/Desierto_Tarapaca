@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DesiertoTarapaca.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     public static final String TABLA_SERVICIOS = "servicios";
     public static final String COL_ID = "id";
@@ -26,6 +26,9 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String COL_USER_NOMBRE = "nombre";
     public static final String COL_USER_CORREO = "correo";
     public static final String COL_USER_PASSWORD = "password";
+    public static final String COL_USER_CARGO = "cargo";
+    public static final String COL_USER_TELEFONO = "telefono";
+    public static final String COL_USER_DIRECCION = "direccion";
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -48,7 +51,10 @@ public class DbHelper extends SQLiteOpenHelper {
                 COL_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COL_USER_NOMBRE + " TEXT, " +
                 COL_USER_CORREO + " TEXT UNIQUE, " +
-                COL_USER_PASSWORD + " TEXT)";
+                COL_USER_PASSWORD + " TEXT, " +
+                COL_USER_CARGO + " TEXT, " +
+                COL_USER_TELEFONO + " TEXT, " +
+                COL_USER_DIRECCION + " TEXT)";
         db.execSQL(crearTablaUsuarios);
     }
 
@@ -140,5 +146,20 @@ public class DbHelper extends SQLiteOpenHelper {
             cursor.close();
         }
         return nombre;
+    }
+    public Cursor obtenerDatosUsuario(String correo) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLA_USUARIOS + " WHERE " + COL_USER_CORREO + " = ?", new String[]{correo.toLowerCase().trim()});
+    }
+
+    public boolean actualizarPerfilUsuario(String correo, String cargo, String telefono, String direccion) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_USER_CARGO, cargo);
+        cv.put(COL_USER_TELEFONO, telefono);
+        cv.put(COL_USER_DIRECCION, direccion);
+
+        int filas = db.update(TABLA_USUARIOS, cv, COL_USER_CORREO + " = ?", new String[]{correo.toLowerCase().trim()});
+        return filas > 0;
     }
 }
