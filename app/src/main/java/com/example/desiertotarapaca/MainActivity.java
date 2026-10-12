@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private DbHelper dbHelper;
     private TextView tvNombreUsuarioDrawer, tvAvatarDrawer;
+    private TextView tvCargoUsuarioDrawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
 
         tvNombreUsuarioDrawer = findViewById(R.id.tvNombreUsuario);
         tvAvatarDrawer = findViewById(R.id.tvAvatarIniciales);
+        tvCargoUsuarioDrawer = findViewById(R.id.tvCargoUsuario);
 
         if (btnMenuHamburguesa != null && drawerLayout != null) {
             btnMenuHamburguesa.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
@@ -217,14 +219,28 @@ public class MainActivity extends AppCompatActivity {
         String correoActivo = pref.getString("correo_usuario", "");
 
         if (!correoActivo.isEmpty() && dbHelper != null) {
-            String nombreCompleto = dbHelper.obtenerNombreUsuario(correoActivo);
+            android.database.Cursor cursor = dbHelper.obtenerDatosUsuario(correoActivo);
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    int idxNombre = cursor.getColumnIndex("nombre");
+                    int idxCargo = cursor.getColumnIndex("cargo");
 
-            if (tvNombreUsuarioDrawer != null) {
-                tvNombreUsuarioDrawer.setText(nombreCompleto);
-            }
+                    String nombre = (idxNombre != -1 && !cursor.isNull(idxNombre)) ? cursor.getString(idxNombre) : "";
+                    String cargo = (idxCargo != -1 && !cursor.isNull(idxCargo)) ? cursor.getString(idxCargo) : "";
 
-            if (tvAvatarDrawer != null) {
-                tvAvatarDrawer.setText(generarIniciales(nombreCompleto));
+                    if (tvNombreUsuarioDrawer != null) {
+                        tvNombreUsuarioDrawer.setText(nombre);
+                    }
+
+                    if (tvAvatarDrawer != null) {
+                        tvAvatarDrawer.setText(generarIniciales(nombre));
+                    }
+
+                    if (tvCargoUsuarioDrawer != null) {
+                        tvCargoUsuarioDrawer.setText(cargo.isEmpty() ? "Sin profesión definida" : cargo);
+                    }
+                }
+                cursor.close();
             }
         }
     }

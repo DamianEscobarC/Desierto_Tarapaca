@@ -69,7 +69,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Técnico de terreno"
                 android:textColor="#6B7F74"
                 android:textSize="12sp" />
         </LinearLayout>
