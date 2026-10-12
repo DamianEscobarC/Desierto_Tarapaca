@@ -153,6 +153,12 @@ public class DbHelper extends SQLiteOpenHelper {
         return db.update(TABLA_SERVICIOS, cv, COL_ID + "=?", new String[]{String.valueOf(id)});
     }
 
+    public boolean eliminarServicio(long id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int filas = db.delete(TABLA_SERVICIOS, COL_ID + "=?", new String[]{String.valueOf(id)});
+        return filas > 0;
+    }
+
     public Cursor obtenerTodosLosServicios() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLA_SERVICIOS + " ORDER BY " + COL_ID + " DESC", null);
@@ -207,6 +213,41 @@ public class DbHelper extends SQLiteOpenHelper {
     public Cursor obtenerTareasPorFecha(String fecha) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLA_TAREAS + " WHERE " + COL_TAREA_FECHA + " = ? ORDER BY " + COL_TAREA_HORA + " ASC", new String[]{fecha});
+    }
+
+    public Cursor obtenerTodasLasTareas() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLA_TAREAS + " ORDER BY " + COL_TAREA_FECHA + " DESC, " + COL_TAREA_HORA + " ASC", null);
+    }
+
+    public Cursor obtenerTareasFiltradas(String filtro) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        if (filtro == null || filtro.trim().isEmpty()) {
+            return obtenerTodasLasTareas();
+        }
+        String pattern = "%" + filtro.trim() + "%";
+        return db.rawQuery("SELECT * FROM " + TABLA_TAREAS +
+                        " WHERE " + COL_TAREA_CLIENTE + " LIKE ? OR " + COL_TAREA_TIPO + " LIKE ? OR " + COL_TAREA_FECHA + " LIKE ? " +
+                        " ORDER BY " + COL_TAREA_FECHA + " DESC, " + COL_TAREA_HORA + " ASC",
+                new String[]{pattern, pattern, pattern});
+    }
+
+    public boolean actualizarTarea(long id, String cliente, String tipo, String hora, String fecha, String estado) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_TAREA_CLIENTE, cliente);
+        cv.put(COL_TAREA_TIPO, tipo);
+        cv.put(COL_TAREA_HORA, hora);
+        cv.put(COL_TAREA_FECHA, fecha);
+        cv.put(COL_TAREA_ESTADO, estado);
+        int filas = db.update(TABLA_TAREAS, cv, COL_TAREA_ID + " = ?", new String[]{String.valueOf(id)});
+        return filas > 0;
+    }
+
+    public boolean eliminarTarea(long id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int filas = db.delete(TABLA_TAREAS, COL_TAREA_ID + " = ?", new String[]{String.valueOf(id)});
+        return filas > 0;
     }
 
     //PRODUCTOS QUIMICOS

@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Historial de Servicios"
+            android:text="Historiales"
             android:textColor="@color/text_main"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -134,7 +134,7 @@
         android:id="@+id/etBuscadorHistorial"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="12dp"
         android:background="@drawable/bg_white_card"
         android:hint="🔍 Buscar por faena, OT o servicio..."
         android:inputType="text"
@@ -143,13 +143,44 @@
         android:textSize="14sp" />
 
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnTabServicios"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_selected_day_circle"
+            android:text="Servicios"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnTabTareas"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input_field"
+            android:text="Tareas"
+            android:textColor="@color/text_main"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/layoutEstadoVacio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:gravity="center"
         android:orientation="vertical"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
@@ -158,6 +189,7 @@
             android:textSize="42sp" />
 
         <TextView
+            android:id="@+id/tvTituloVacio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -167,14 +199,14 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/tvMensajeVacio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Los servicios que completes en terreno aparecerán aquí."
+            android:text="Los registros completados aparecerán aquí."
             android:textColor="@color/text_muted"
             android:textSize="13sp" />
     </LinearLayout>
-
 
     <ScrollView
         android:layout_width="match_parent"
