@@ -126,4 +126,19 @@ public class DbHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLA_SERVICIOS + " WHERE " + COL_ID + " = ?", new String[]{String.valueOf(id)});
     }
+    public String obtenerNombreUsuario(String correo) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COL_USER_NOMBRE + " FROM " + TABLA_USUARIOS + " WHERE " + COL_USER_CORREO + " = ?", new String[]{correo.toLowerCase().trim()});
+        String nombre = "Usuario";
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int colIdx = cursor.getColumnIndex(COL_USER_NOMBRE);
+                if (colIdx != -1) {
+                    nombre = cursor.getString(colIdx);
+                }
+            }
+            cursor.close();
+        }
+        return nombre;
+    }
 }

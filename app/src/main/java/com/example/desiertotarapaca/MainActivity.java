@@ -1,5 +1,7 @@
 package com.example.desiertotarapaca;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -29,10 +31,15 @@ public class MainActivity extends AppCompatActivity {
     private ImageView btnMenuHamburguesa, btnCerrarDrawer;
     private LinearLayout navItemMiJornada, navItemMiCuenta, navItemHistoriales, navItemSincronizacion;
 
+    private DbHelper dbHelper;
+    private TextView tvNombreUsuarioDrawer, tvAvatarDrawer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        dbHelper = new DbHelper(this);
 
         cardRegistrarServicio = findViewById(R.id.cardRegistrarServicio);
         cardConsultarRegistros = findViewById(R.id.cardConsultarRegistros);
@@ -89,6 +96,12 @@ public class MainActivity extends AppCompatActivity {
         configurarMenuHamburguesa();
 
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recargar los datos del usuario por si se actualizaron en MiCuentaActivity
+        cargarDatosUsuarioDrawer();
+    }
 
     private void actualizarCalendarioSemanal() {
         Calendar calSemana = (Calendar) calendarioActual.clone();
@@ -131,6 +144,9 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         android.view.View btnMenuHamburguesa = findViewById(R.id.btnMenuHamburguesa);
         android.view.View btnCerrarDrawer = findViewById(R.id.btnCerrarDrawer);
+
+        tvNombreUsuarioDrawer = findViewById(R.id.tvNombreUsuario);
+        tvAvatarDrawer = findViewById(R.id.tvAvatarIniciales);
 
         if (btnMenuHamburguesa != null && drawerLayout != null) {
             btnMenuHamburguesa.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
@@ -196,5 +212,29 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Contacto soporte: +56 9 8123 4567", Toast.LENGTH_SHORT).show();
             });
         }
+    }
+    private void cargarDatosUsuarioDrawer() {
+        SharedPreferences pref = getSharedPreferences("SesionUsuario", Context.MODE_PRIVATE);
+        String correoActivo = pref.getString("correo_usuario", "");
+
+        if (!correoActivo.isEmpty() && dbHelper != null) {
+            String nombreCompleto = dbHelper.obtenerNombreUsuario(correoActivo);
+
+            if (tvNombreUsuarioDrawer != null) {
+                tvNombreUsuarioDrawer.setText(nombreCompleto);
+            }
+
+            if (tvAvatarDrawer != null) {
+                tvAvatarDrawer.setText(generarIniciales(nombreCompleto));
+            }
+        }
+    }
+    private String generarIniciales(String nombreCompleto) {
+        if (nombreCompleto == null || nombreCompleto.trim().isEmpty()) return "US";
+        String[] partes = nombreCompleto.trim().split("\\s+");
+        if (partes.length >= 2) {
+            return ("" + partes[0].charAt(0) + partes[1].charAt(0)).toUpperCase();
+        }
+        return ("" + partes[0].charAt(0)).toUpperCase();
     }
 }
