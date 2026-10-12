@@ -64,10 +64,10 @@
                 android:background="@drawable/bg_avatar_circle">
 
                 <TextView
+                    android:id="@+id/tvAvatarConfig"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:text="AJ"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -80,18 +80,18 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tvNombreConfig"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Alex Jelves"
                     android:textColor="@color/text_main"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvCorreoConfig"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="alex.jelves@tarapacaoperaciones.cl"
                     android:textColor="@color/text_muted"
                     android:textSize="12sp" />
             </LinearLayout>
