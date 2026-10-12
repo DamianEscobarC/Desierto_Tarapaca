@@ -57,7 +57,6 @@
                         android:id="@+id/tvFechaHeader"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Martes, 6 de octubre"
                         android:textColor="@color/text_muted"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -331,16 +330,6 @@
                     android:gravity="center"
                     android:orientation="horizontal"
                     android:weightSum="7">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="36dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_btn_finalizar"
-                        android:gravity="center"
-                        android:text=""
-                        android:textColor="@color/text_light"
-                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
