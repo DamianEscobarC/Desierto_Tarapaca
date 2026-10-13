@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F4F6F5"
@@ -57,15 +56,19 @@
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/etClienteServicio"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="6dp"
-                android:background="@drawable/bg_input_field"
-                android:paddingHorizontal="14dp"
-                android:textColor="@color/text_main"
-                android:textSize="14sp" />
+                android:background="@drawable/bg_input_field">
+
+                <Spinner
+                    android:id="@+id/spnClienteServicio"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingHorizontal="8dp"
+                    android:spinnerMode="dropdown" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"

@@ -3,26 +3,34 @@ package com.example.desiertotarapaca;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class RegistrarServicioActivity extends AppCompatActivity {
 
     private TextView btnVolverRegistro;
-    private EditText etClienteServicio, etTipoTrabajo, etUnidadesAtendidas, etObservaciones;
+    private Spinner spnClienteServicio;
+    private EditText etTipoTrabajo, etUnidadesAtendidas, etObservaciones;
     private TextView tvCoordenadasGps;
     private AppCompatButton btnCapturarGps, btnGuardarServicio;
 
     private DbHelper dbHelper;
     private long idServicioAEditar = -1;
     private String numeroOtActual = "";
+    private String clienteASeleccionarEnEdicion = "";
+    private List<String> listaNombresClientes = new ArrayList<>();
+    private ArrayAdapter<String> adapterClientes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +40,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         dbHelper = new DbHelper(this);
 
         btnVolverRegistro = findViewById(R.id.btnVolverRegistro);
-        etClienteServicio = findViewById(R.id.etClienteServicio);
+        spnClienteServicio = findViewById(R.id.spnClienteServicio);
         etTipoTrabajo = findViewById(R.id.etTipoTrabajo);
         etUnidadesAtendidas = findViewById(R.id.etUnidadesAtendidas);
         tvCoordenadasGps = findViewById(R.id.tvCoordenadasGps);
@@ -47,6 +55,8 @@ public class RegistrarServicioActivity extends AppCompatActivity {
             Toast.makeText(this, "Coordenadas fijadas en faena", Toast.LENGTH_SHORT).show();
         });
 
+        configurarSpinnerClientes();
+
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("ID_SERVICIO")) {
             idServicioAEditar = intent.getLongExtra("ID_SERVICIO", -1);
@@ -59,6 +69,55 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         btnGuardarServicio.setOnClickListener(v -> guardarOActualizar());
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        recargarClientesEnSpinner();
+    }
+
+    private void configurarSpinnerClientes() {
+        listaNombresClientes = new ArrayList<>();
+        listaNombresClientes.add("Selecciona un cliente...");
+
+        List<String> clientesBD = dbHelper.obtenerNombresClientes();
+        if (clientesBD != null && !clientesBD.isEmpty()) {
+            listaNombresClientes.addAll(clientesBD);
+        }
+
+        adapterClientes = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                listaNombresClientes
+        );
+        spnClienteServicio.setAdapter(adapterClientes);
+    }
+
+    private void recargarClientesEnSpinner() {
+        String seleccionPrevia = (spnClienteServicio.getSelectedItem() != null)
+                ? spnClienteServicio.getSelectedItem().toString()
+                : "";
+
+        listaNombresClientes.clear();
+        listaNombresClientes.add("Selecciona un cliente...");
+
+        List<String> clientesBD = dbHelper.obtenerNombresClientes();
+        if (clientesBD != null && !clientesBD.isEmpty()) {
+            listaNombresClientes.addAll(clientesBD);
+        }
+
+        adapterClientes.notifyDataSetChanged();
+
+        String buscar = !clienteASeleccionarEnEdicion.isEmpty() ? clienteASeleccionarEnEdicion : seleccionPrevia;
+        if (!buscar.isEmpty()) {
+            for (int i = 0; i < listaNombresClientes.size(); i++) {
+                if (listaNombresClientes.get(i).equalsIgnoreCase(buscar)) {
+                    spnClienteServicio.setSelection(i);
+                    break;
+                }
+            }
+        }
+    }
+
     private void cargarDatosServicioParaEditar(long id) {
         Cursor cursor = dbHelper.obtenerServicioPorId(id);
         if (cursor != null && cursor.moveToFirst()) {
@@ -68,7 +127,15 @@ public class RegistrarServicioActivity extends AppCompatActivity {
             int idxDesc = cursor.getColumnIndex(DbHelper.COL_DESCRIPCION);
 
             if (idxOt != -1) numeroOtActual = cursor.getString(idxOt);
-            if (idxCli != -1) etClienteServicio.setText(cursor.getString(idxCli));
+            if (idxCli != -1) {
+                clienteASeleccionarEnEdicion = cursor.getString(idxCli);
+                for (int i = 0; i < listaNombresClientes.size(); i++) {
+                    if (listaNombresClientes.get(i).equalsIgnoreCase(clienteASeleccionarEnEdicion)) {
+                        spnClienteServicio.setSelection(i);
+                        break;
+                    }
+                }
+            }
             if (idxTipo != -1) etTipoTrabajo.setText(cursor.getString(idxTipo));
             if (idxDesc != -1) etObservaciones.setText(cursor.getString(idxDesc));
 
@@ -77,17 +144,18 @@ public class RegistrarServicioActivity extends AppCompatActivity {
     }
 
     private void guardarOActualizar() {
-        String cliente = etClienteServicio.getText().toString().trim();
+        int posicionSeleccionada = spnClienteServicio.getSelectedItemPosition();
+
+        if (posicionSeleccionada <= 0 || listaNombresClientes.size() <= 1) {
+            Toast.makeText(this, "Debes seleccionar un cliente registrado del Directorio", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String cliente = listaNombresClientes.get(posicionSeleccionada);
         String tipo = etTipoTrabajo.getText().toString().trim();
         String unidades = etUnidadesAtendidas.getText().toString().trim();
         String observaciones = etObservaciones.getText().toString().trim();
         String gps = tvCoordenadasGps.getText().toString().trim();
-
-        if (cliente.isEmpty()) {
-            etClienteServicio.setError("Ingresa el cliente o faena");
-            etClienteServicio.requestFocus();
-            return;
-        }
 
         if (tipo.isEmpty()) {
             etTipoTrabajo.setError("Ingresa el tipo de trabajo");

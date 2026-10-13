@@ -6,10 +6,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DesiertoTarapaca.db";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 6;
 
     public static final String TABLA_SERVICIOS = "servicios";
     public static final String COL_ID = "id";
@@ -44,6 +47,13 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String COL_QUIM_TIPO = "tipo";
     public static final String COL_QUIM_STOCK = "stock";
     public static final String COL_QUIM_UNIDAD = "unidad";
+
+    public static final String TABLA_CLIENTES = "clientes";
+    public static final String COL_CLI_ID = "id";
+    public static final String COL_CLI_NOMBRE = "nombre";
+    public static final String COL_CLI_RUT = "rut";
+    public static final String COL_CLI_FAENA = "faena";
+    public static final String COL_CLI_TELEFONO = "telefono";
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -88,6 +98,14 @@ public class DbHelper extends SQLiteOpenHelper {
                 COL_QUIM_STOCK + " REAL, " +
                 COL_QUIM_UNIDAD + " TEXT)";
         db.execSQL(crearTablaInventario);
+
+        String crearTablaClientes = "CREATE TABLE " + TABLA_CLIENTES + " (" +
+                COL_CLI_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_CLI_NOMBRE + " TEXT, " +
+                COL_CLI_RUT + " TEXT, " +
+                COL_CLI_FAENA + " TEXT, " +
+                COL_CLI_TELEFONO + " TEXT)";
+        db.execSQL(crearTablaClientes);
     }
 
     @Override
@@ -96,6 +114,7 @@ public class DbHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_USUARIOS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_TAREAS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_INVENTARIO);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLA_CLIENTES);
         onCreate(db);
     }
 
@@ -305,5 +324,47 @@ public class DbHelper extends SQLiteOpenHelper {
 
         if (cursor != null) cursor.close();
         return false;
+    }
+        //Para el Direcotrio
+    public boolean insertarCliente(String nombre, String rut, String faena, String telefono) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_CLI_NOMBRE, nombre.trim());
+        cv.put(COL_CLI_RUT, rut.trim());
+        cv.put(COL_CLI_FAENA, faena.trim());
+        cv.put(COL_CLI_TELEFONO, telefono.trim());
+        long res = db.insert(TABLA_CLIENTES, null, cv);
+        return res != -1;
+    }
+
+    public Cursor obtenerClientes(String filtro) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        if (filtro == null || filtro.trim().isEmpty()) {
+            return db.rawQuery("SELECT * FROM " + TABLA_CLIENTES + " ORDER BY " + COL_CLI_NOMBRE + " ASC", null);
+        }
+        String pattern = "%" + filtro.trim() + "%";
+        return db.rawQuery("SELECT * FROM " + TABLA_CLIENTES +
+                        " WHERE " + COL_CLI_NOMBRE + " LIKE ? OR " + COL_CLI_RUT + " LIKE ? OR " + COL_CLI_FAENA + " LIKE ? " +
+                        " ORDER BY " + COL_CLI_NOMBRE + " ASC",
+                new String[]{pattern, pattern, pattern});
+    }
+
+    public List<String> obtenerNombresClientes() {
+        List<String> lista = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COL_CLI_NOMBRE + " FROM " + TABLA_CLIENTES + " ORDER BY " + COL_CLI_NOMBRE + " ASC", null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                lista.add(cursor.getString(0));
+            }
+            cursor.close();
+        }
+        return lista;
+    }
+
+    public boolean eliminarCliente(long id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int filas = db.delete(TABLA_CLIENTES, COL_CLI_ID + "=?", new String[]{String.valueOf(id)});
+        return filas > 0;
     }
 }

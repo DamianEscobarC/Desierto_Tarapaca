@@ -1,12 +1,15 @@
 package com.example.desiertotarapaca;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
@@ -23,12 +26,14 @@ import java.util.List;
 public class DirectorioClientesActivity extends AppCompatActivity {
 
     public static class Cliente {
+        public long id;
         public String rut;
         public String nombre;
         public String direccion;
         public String telefono;
 
-        public Cliente(String rut, String nombre, String direccion, String telefono) {
+        public Cliente(long id, String rut, String nombre, String direccion, String telefono) {
+            this.id = id;
             this.rut = rut;
             this.nombre = nombre;
             this.direccion = direccion;
@@ -40,7 +45,9 @@ public class DirectorioClientesActivity extends AppCompatActivity {
     private AppCompatButton btnAbrirDialogoAgregar;
     private EditText etBuscadorCliente;
     private LinearLayout contenedorListaClientes;
+    private LinearLayout layoutVacioClientes;
 
+    private DbHelper dbHelper;
     private List<Cliente> listaClientes = new ArrayList<>();
 
     @Override
@@ -48,20 +55,16 @@ public class DirectorioClientesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_directorio_clientes);
 
+        dbHelper = new DbHelper(this);
+
         btnVolverClientes = findViewById(R.id.btnVolverClientes);
         btnAbrirDialogoAgregar = findViewById(R.id.btnAbrirDialogoAgregar);
         etBuscadorCliente = findViewById(R.id.etBuscadorCliente);
         contenedorListaClientes = findViewById(R.id.contenedorListaClientes);
+        layoutVacioClientes = findViewById(R.id.layoutVacioClientes);
 
         btnVolverClientes.setOnClickListener(v -> finish());
         btnAbrirDialogoAgregar.setOnClickListener(v -> mostrarDialogoAgregarCliente());
-
-        // Clientes base COMO PRUEBAS PARA PROBAR EL CODEEEeeeEEEeee
-        listaClientes.add(new Cliente("76.432.111-K", "Compañía Minera Doña Inés de Collahuasi", "Faena Cordillera · Campamento 3", "+56 9 8123 4567"));
-        listaClientes.add(new Cliente("96.876.543-2", "Teck Quebrada Blanca (QB2)", "Puerto Patache · Área Concentradora", "+56 9 7654 3210"));
-        listaClientes.add(new Cliente("77.990.222-1", "Constructora Alto Hospicio SpA", "Av. Las Parcelas s/n · Obra Habitacional", "+56 9 5551 2345"));
-
-        renderizarClientes("");
 
         etBuscadorCliente.addTextChangedListener(new TextWatcher() {
             @Override
@@ -77,12 +80,47 @@ public class DirectorioClientesActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        cargarClientesDesdeBD();
+        String filtro = etBuscadorCliente.getText() != null ?
+                etBuscadorCliente.getText().toString().toLowerCase().trim() : "";
+        renderizarClientes(filtro);
+    }
+
+    private void cargarClientesDesdeBD() {
+        listaClientes.clear();
+        Cursor cursor = dbHelper.obtenerClientes(null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int idxId = cursor.getColumnIndex(DbHelper.COL_CLI_ID);
+            int idxNombre = cursor.getColumnIndex(DbHelper.COL_CLI_NOMBRE);
+            int idxRut = cursor.getColumnIndex(DbHelper.COL_CLI_RUT);
+            int idxFaena = cursor.getColumnIndex(DbHelper.COL_CLI_FAENA);
+            int idxTel = cursor.getColumnIndex(DbHelper.COL_CLI_TELEFONO);
+
+            do {
+                long id = (idxId != -1) ? cursor.getLong(idxId) : 0;
+                String nombre = (idxNombre != -1) ? cursor.getString(idxNombre) : "";
+                String rut = (idxRut != -1) ? cursor.getString(idxRut) : "";
+                String faena = (idxFaena != -1) ? cursor.getString(idxFaena) : "";
+                String telefono = (idxTel != -1) ? cursor.getString(idxTel) : "";
+
+                listaClientes.add(new Cliente(id, rut, nombre, faena, telefono));
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+    }
+
     private void renderizarClientes(String filtro) {
         contenedorListaClientes.removeAllViews();
 
         int colorMain = Color.parseColor("#1B2E24");
         int colorPrimary = Color.parseColor("#2D5A43");
         int colorMuted = Color.parseColor("#6B7F74");
+        int visibles = 0;
 
         for (Cliente cliente : listaClientes) {
             boolean coincide = filtro.isEmpty() ||
@@ -91,6 +129,8 @@ public class DirectorioClientesActivity extends AppCompatActivity {
                     cliente.direccion.toLowerCase().contains(filtro);
 
             if (coincide) {
+                visibles++;
+
                 LinearLayout layoutCard = new LinearLayout(this);
                 layoutCard.setOrientation(LinearLayout.VERTICAL);
                 layoutCard.setBackgroundResource(R.drawable.bg_white_card);
@@ -133,12 +173,39 @@ public class DirectorioClientesActivity extends AppCompatActivity {
                 layoutCard.addView(tvTel);
 
                 layoutCard.setOnClickListener(v ->
-                        Toast.makeText(this, "Cliente: " + cliente.nombre, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, cliente.nombre + "\nMantén presionado para eliminar", Toast.LENGTH_SHORT).show()
                 );
+
+                layoutCard.setOnLongClickListener(v -> {
+                    confirmarEliminacionCliente(cliente);
+                    return true;
+                });
 
                 contenedorListaClientes.addView(layoutCard);
             }
         }
+
+        if (layoutVacioClientes != null) {
+            layoutVacioClientes.setVisibility(visibles == 0 ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void confirmarEliminacionCliente(Cliente cliente) {
+        new AlertDialog.Builder(this)
+                .setTitle("Eliminar Cliente")
+                .setMessage("¿Deseas eliminar a \"" + cliente.nombre + "\" del directorio?")
+                .setPositiveButton("Eliminar", (dialog, which) -> {
+                    boolean ok = dbHelper.eliminarCliente(cliente.id);
+                    if (ok) {
+                        Toast.makeText(this, "Cliente eliminado", Toast.LENGTH_SHORT).show();
+                        cargarClientesDesdeBD();
+                        renderizarClientes(etBuscadorCliente.getText().toString().trim().toLowerCase());
+                    } else {
+                        Toast.makeText(this, "Error al eliminar cliente", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
     private void mostrarDialogoAgregarCliente() {
@@ -148,10 +215,8 @@ public class DirectorioClientesActivity extends AppCompatActivity {
 
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.getWindow().setLayout(
-                    (int) (getResources().getDisplayMetrics().widthPixels * 0.90),
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            );
+            int ancho = (int) (getResources().getDisplayMetrics().widthPixels * 0.90);
+            dialog.getWindow().setLayout(ancho, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
 
         EditText etRut = dialog.findViewById(R.id.etDialogRut);
@@ -190,11 +255,15 @@ public class DirectorioClientesActivity extends AppCompatActivity {
                 return;
             }
 
-            listaClientes.add(0, new Cliente(rut, nombre, direccion, telefono));
-            renderizarClientes(etBuscadorCliente.getText().toString().trim().toLowerCase());
-
-            Toast.makeText(this, "Cliente añadido con éxito", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
+            boolean ok = dbHelper.insertarCliente(nombre, rut, direccion, telefono);
+            if (ok) {
+                Toast.makeText(this, "Cliente guardado con éxito", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                cargarClientesDesdeBD();
+                renderizarClientes(etBuscadorCliente.getText().toString().trim().toLowerCase());
+            } else {
+                Toast.makeText(this, "Error al guardar cliente en la base de datos", Toast.LENGTH_SHORT).show();
+            }
         });
 
         dialog.show();
