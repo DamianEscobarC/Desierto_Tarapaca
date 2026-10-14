@@ -11,7 +11,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp">
+        android:layout_marginBottom="16dp">
 
         <TextView
             android:id="@+id/btnVolverInventario"
@@ -26,21 +26,54 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/tvTituloInventario"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Inventario Químicos"
+            android:text="Control de Inventario"
             android:textColor="@color/text_main"
             android:textSize="18sp"
             android:textStyle="bold" />
     </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/bg_input_field"
+        android:orientation="horizontal"
+        android:padding="4dp">
+
+        <TextView
+            android:id="@+id/tabQuimicos"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="🧪 Químicos"
+            android:textColor="@color/text_light"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_green_tile" />
+
+        <TextView
+            android:id="@+id/tabBanos"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="🚽 Baños Químicos"
+            android:textColor="@color/text_muted"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <EditText
         android:id="@+id/etBuscarQuimico"
         android:layout_width="match_parent"
         android:layout_height="46dp"
         android:background="@drawable/bg_input_field"
-        android:hint="Buscar producto químico..."
+        android:hint="Buscar producto o código..."
         android:paddingHorizontal="14dp"
         android:textColor="@color/text_main"
         android:textSize="14sp" />
@@ -57,11 +90,12 @@
         android:textStyle="bold" />
 
     <TextView
+        android:id="@+id/tvSubtituloInstruccion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="12dp"
         android:layout_marginBottom="6dp"
-        android:text="Toca un producto para descontar su uso"
+        android:text="Toca un producto para descontar su stock"
         android:textColor="@color/text_muted"
         android:textSize="11sp" />
 

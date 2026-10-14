@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,7 +66,7 @@ public class HistorialActivity extends AppCompatActivity {
     }
 
     private TextView btnVolverHistorial;
-    private TextView tvTotalServiciosMes, tvHorasTerreno, tvPorcentajeFirmados;
+    private TextView tvTotalServiciosMes, tvTrabajosCompletados, tvTareasCompletadasConteo;
     private EditText etBuscadorHistorial;
     private LinearLayout layoutEstadoVacio;
     private TextView tvTituloVacio, tvMensajeVacio;
@@ -87,8 +88,8 @@ public class HistorialActivity extends AppCompatActivity {
 
         btnVolverHistorial = findViewById(R.id.btnVolverHistorial);
         tvTotalServiciosMes = findViewById(R.id.tvTotalServiciosMes);
-        tvHorasTerreno = findViewById(R.id.tvHorasTerreno);
-        tvPorcentajeFirmados = findViewById(R.id.tvPorcentajeFirmados);
+        tvTrabajosCompletados = findViewById(R.id.tvTrabajosCompletados);
+        tvTareasCompletadasConteo = findViewById(R.id.tvTareasCompletadasConteo);
         etBuscadorHistorial = findViewById(R.id.etBuscadorHistorial);
         layoutEstadoVacio = findViewById(R.id.layoutEstadoVacio);
         tvTituloVacio = findViewById(R.id.tvTituloVacio);
@@ -123,6 +124,14 @@ public class HistorialActivity extends AppCompatActivity {
         recargarDatos();
     }
 
+    private int dpToPx(int dp) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                dp,
+                getResources().getDisplayMetrics()
+        );
+    }
+
     private void cambiarTab(boolean esServicios) {
         if (mostrandoServicios == esServicios) return;
         mostrandoServicios = esServicios;
@@ -132,13 +141,13 @@ public class HistorialActivity extends AppCompatActivity {
             btnTabServicios.setTextColor(Color.WHITE);
             btnTabTareas.setBackgroundResource(R.drawable.bg_input_field);
             btnTabTareas.setTextColor(ContextCompat.getColor(this, R.color.text_main));
-            etBuscadorHistorial.setHint("🔍 Buscar por faena, OT o servicio...");
+            etBuscadorHistorial.setHint("🔍 Buscar por servicio");
         } else {
             btnTabTareas.setBackgroundResource(R.drawable.bg_selected_day_circle);
             btnTabTareas.setTextColor(Color.WHITE);
             btnTabServicios.setBackgroundResource(R.drawable.bg_input_field);
             btnTabServicios.setTextColor(ContextCompat.getColor(this, R.color.text_main));
-            etBuscadorHistorial.setHint("🔍 Buscar por cliente o tipo de tarea...");
+            etBuscadorHistorial.setHint("🔍 Buscar por cliente o tipo de tarea");
         }
 
         renderizarActual(obtenerTextoFiltro());
@@ -152,7 +161,26 @@ public class HistorialActivity extends AppCompatActivity {
     private void recargarDatos() {
         cargarServiciosDesdeBD();
         cargarTareasDesdeBD();
+        actualizarIndicadoresSuperiores();
         renderizarActual(obtenerTextoFiltro());
+    }
+
+    private void actualizarIndicadoresSuperiores() {
+        int completadosCount = 0;
+        for (RegistroServicio s : listaServicios) {
+            if (s.firmado) completadosCount++;
+        }
+
+        int tareasCompletadasCount = 0;
+        for (RegistroTarea t : listaTareas) {
+            if (t.estado != null && t.estado.equalsIgnoreCase("Completada")) {
+                tareasCompletadasCount++;
+            }
+        }
+
+        tvTotalServiciosMes.setText(String.valueOf(listaServicios.size()));
+        tvTrabajosCompletados.setText(String.valueOf(completadosCount));
+        tvTareasCompletadasConteo.setText(tareasCompletadasCount + "/" + listaTareas.size());
     }
 
     private void renderizarActual(String filtro) {
@@ -225,11 +253,8 @@ public class HistorialActivity extends AppCompatActivity {
         int colorMain = Color.parseColor("#1B2E24");
         int colorMuted = Color.parseColor("#6B7F74");
         int visibles = 0;
-        int firmadosCount = 0;
 
         for (RegistroServicio item : listaServicios) {
-            if (item.firmado) firmadosCount++;
-
             boolean coincide = filtro.isEmpty() ||
                     item.numeroOt.toLowerCase().contains(filtro) ||
                     item.tipoTrabajo.toLowerCase().contains(filtro) ||
@@ -242,13 +267,13 @@ public class HistorialActivity extends AppCompatActivity {
                 card.setOrientation(LinearLayout.VERTICAL);
                 card.setBackgroundResource(R.drawable.bg_white_card);
                 card.setElevation(4f);
-                card.setPadding(36, 28, 36, 28);
+                card.setPadding(dpToPx(16), dpToPx(14), dpToPx(16), dpToPx(14));
 
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
-                params.setMargins(0, 0, 0, 24);
+                params.setMargins(0, 0, 0, dpToPx(12));
                 card.setLayoutParams(params);
 
                 LinearLayout headerCard = new LinearLayout(this);
@@ -270,17 +295,17 @@ public class HistorialActivity extends AppCompatActivity {
 
                 TextView tvBadge = new TextView(this);
                 if (item.firmado) {
-                    tvBadge.setText("✓ Guardado");
+                    tvBadge.setText("✓ Completado");
                     tvBadge.setTextColor(Color.parseColor("#137333"));
                     tvBadge.setBackgroundColor(Color.parseColor("#E6F4EA"));
                 } else {
-                    tvBadge.setText("⏳ Pendiente");
+                    tvBadge.setText("⏳ En Proceso");
                     tvBadge.setTextColor(Color.parseColor("#B06000"));
                     tvBadge.setBackgroundColor(Color.parseColor("#FEF7E0"));
                 }
                 tvBadge.setTextSize(11f);
                 tvBadge.setTypeface(null, Typeface.BOLD);
-                tvBadge.setPadding(16, 6, 16, 6);
+                tvBadge.setPadding(dpToPx(8), dpToPx(3), dpToPx(8), dpToPx(3));
                 headerCard.addView(tvBadge);
 
                 card.addView(headerCard);
@@ -289,14 +314,14 @@ public class HistorialActivity extends AppCompatActivity {
                 tvFaena.setText("🏢 " + item.faenaCliente);
                 tvFaena.setTextSize(12f);
                 tvFaena.setTextColor(colorMuted);
-                tvFaena.setPadding(0, 8, 0, 0);
+                tvFaena.setPadding(0, dpToPx(4), 0, 0);
                 card.addView(tvFaena);
 
                 TextView tvFecha = new TextView(this);
                 tvFecha.setText("📅 " + item.fechaHora);
                 tvFecha.setTextSize(11f);
                 tvFecha.setTextColor(colorMuted);
-                tvFecha.setPadding(0, 4, 0, 0);
+                tvFecha.setPadding(0, dpToPx(2), 0, 0);
                 card.addView(tvFecha);
 
                 if (item.descripcion != null && !item.descripcion.isEmpty()) {
@@ -304,14 +329,75 @@ public class HistorialActivity extends AppCompatActivity {
                     tvDesc.setText(item.descripcion);
                     tvDesc.setTextSize(12f);
                     tvDesc.setTextColor(colorMain);
-                    tvDesc.setPadding(0, 6, 0, 0);
+                    tvDesc.setPadding(0, dpToPx(4), 0, 0);
                     card.addView(tvDesc);
+                }
+
+                if (!item.firmado) {
+                    AppCompatButton btnCompletar = new AppCompatButton(this);
+                    btnCompletar.setText("✓ Completar Trabajo");
+                    btnCompletar.setTextColor(Color.WHITE);
+                    btnCompletar.setTextSize(12f);
+                    btnCompletar.setTypeface(null, Typeface.BOLD);
+                    btnCompletar.setBackgroundResource(R.drawable.bg_green_tile);
+
+                    LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(42)
+                    );
+                    btnParams.setMargins(0, dpToPx(10), 0, 0);
+                    btnCompletar.setLayoutParams(btnParams);
+
+                    btnCompletar.setOnClickListener(v -> {
+                        new AlertDialog.Builder(this)
+                                .setTitle("Completar Trabajo")
+                                .setMessage("¿Deseas marcar este servicio como completado? Los baños asignados volverán a estar Disponibles en bodega.")
+                                .setPositiveButton("Completar", (d, which) -> {
+                                    boolean ok = dbHelper.completarServicioYLiberarBanos(item.id, item.descripcion);
+                                    if (ok) {
+                                        Toast.makeText(this, "Trabajo completado y baños liberados a bodega", Toast.LENGTH_SHORT).show();
+                                        recargarDatos();
+                                    } else {
+                                        Toast.makeText(this, "Error al completar el trabajo", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .setNegativeButton("Cancelar", null)
+                                .show();
+                    });
+
+                    card.addView(btnCompletar);
                 }
 
                 card.setOnClickListener(v -> {
                     Intent intent = new Intent(HistorialActivity.this, RegistrarServicioActivity.class);
                     intent.putExtra("ID_SERVICIO", item.id);
                     startActivity(intent);
+                });
+
+                card.setOnLongClickListener(v -> {
+                    String[] opciones = item.firmado
+                            ? new String[]{"Reabrir (Marcar como En Proceso)", "Editar Servicio"}
+                            : new String[]{"Marcar como Completado", "Editar Servicio"};
+
+                    new AlertDialog.Builder(this)
+                            .setTitle(item.numeroOt)
+                            .setItems(opciones, (dialog, which) -> {
+                                if (which == 0) {
+                                    if (item.firmado) {
+                                        dbHelper.actualizarServicio(item.id, item.numeroOt, item.faenaCliente, item.tipoTrabajo, item.descripcion, false);
+                                        Toast.makeText(this, "Servicio reabierto en proceso", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        dbHelper.completarServicioYLiberarBanos(item.id, item.descripcion);
+                                        Toast.makeText(this, "Servicio completado", Toast.LENGTH_SHORT).show();
+                                    }
+                                    recargarDatos();
+                                } else {
+                                    Intent intent = new Intent(HistorialActivity.this, RegistrarServicioActivity.class);
+                                    intent.putExtra("ID_SERVICIO", item.id);
+                                    startActivity(intent);
+                                }
+                            })
+                            .show();
+                    return true;
                 });
 
                 contenedorHistorial.addView(card);
@@ -325,14 +411,6 @@ public class HistorialActivity extends AppCompatActivity {
         } else {
             layoutEstadoVacio.setVisibility(View.GONE);
         }
-
-        tvTotalServiciosMes.setText(String.valueOf(listaServicios.size()));
-        if (!listaServicios.isEmpty()) {
-            int porcentaje = (firmadosCount * 100) / listaServicios.size();
-            tvPorcentajeFirmados.setText(porcentaje + "%");
-        } else {
-            tvPorcentajeFirmados.setText("0%");
-        }
     }
 
     private void renderizarTareas(String filtro) {
@@ -343,6 +421,8 @@ public class HistorialActivity extends AppCompatActivity {
         int visibles = 0;
 
         for (RegistroTarea item : listaTareas) {
+            boolean completada = item.estado != null && item.estado.equalsIgnoreCase("Completada");
+
             boolean coincide = filtro.isEmpty() ||
                     item.cliente.toLowerCase().contains(filtro) ||
                     item.tipo.toLowerCase().contains(filtro) ||
@@ -355,13 +435,13 @@ public class HistorialActivity extends AppCompatActivity {
                 card.setOrientation(LinearLayout.VERTICAL);
                 card.setBackgroundResource(R.drawable.bg_white_card);
                 card.setElevation(4f);
-                card.setPadding(36, 28, 36, 28);
+                card.setPadding(dpToPx(16), dpToPx(14), dpToPx(16), dpToPx(14));
 
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
-                params.setMargins(0, 0, 0, 24);
+                params.setMargins(0, 0, 0, dpToPx(12));
                 card.setLayoutParams(params);
 
                 LinearLayout headerCard = new LinearLayout(this);
@@ -381,12 +461,20 @@ public class HistorialActivity extends AppCompatActivity {
                 ));
                 headerCard.addView(tvTitulo);
 
-                TextView tvHora = new TextView(this);
-                tvHora.setText(item.hora);
-                tvHora.setTextSize(12f);
-                tvHora.setTypeface(null, Typeface.BOLD);
-                tvHora.setTextColor(Color.parseColor("#2D6A4F"));
-                headerCard.addView(tvHora);
+                TextView tvBadge = new TextView(this);
+                if (completada) {
+                    tvBadge.setText("✓ Completada");
+                    tvBadge.setTextColor(Color.parseColor("#137333"));
+                    tvBadge.setBackgroundColor(Color.parseColor("#E6F4EA"));
+                } else {
+                    tvBadge.setText("⏳ En Proceso");
+                    tvBadge.setTextColor(Color.parseColor("#B06000"));
+                    tvBadge.setBackgroundColor(Color.parseColor("#FEF7E0"));
+                }
+                tvBadge.setTextSize(11f);
+                tvBadge.setTypeface(null, Typeface.BOLD);
+                tvBadge.setPadding(dpToPx(8), dpToPx(3), dpToPx(8), dpToPx(3));
+                headerCard.addView(tvBadge);
 
                 card.addView(headerCard);
 
@@ -394,15 +482,42 @@ public class HistorialActivity extends AppCompatActivity {
                 tvTipo.setText("🛠 " + item.tipo);
                 tvTipo.setTextSize(12f);
                 tvTipo.setTextColor(colorMuted);
-                tvTipo.setPadding(0, 8, 0, 0);
+                tvTipo.setPadding(0, dpToPx(4), 0, 0);
                 card.addView(tvTipo);
 
-                TextView tvFecha = new TextView(this);
-                tvFecha.setText("📅 " + item.fecha);
-                tvFecha.setTextSize(11f);
-                tvFecha.setTextColor(colorMuted);
-                tvFecha.setPadding(0, 4, 0, 0);
-                card.addView(tvFecha);
+                TextView tvFechaHora = new TextView(this);
+                tvFechaHora.setText("📅 " + item.fecha + " · ⏰ " + item.hora);
+                tvFechaHora.setTextSize(11f);
+                tvFechaHora.setTextColor(colorMuted);
+                tvFechaHora.setPadding(0, dpToPx(2), 0, 0);
+                card.addView(tvFechaHora);
+
+                if (!completada) {
+                    AppCompatButton btnCompletarTarea = new AppCompatButton(this);
+                    btnCompletarTarea.setText("✓ Completar Tarea");
+                    btnCompletarTarea.setTextColor(Color.WHITE);
+                    btnCompletarTarea.setTextSize(12f);
+                    btnCompletarTarea.setTypeface(null, Typeface.BOLD);
+                    btnCompletarTarea.setBackgroundResource(R.drawable.bg_green_tile);
+
+                    LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(42)
+                    );
+                    btnParams.setMargins(0, dpToPx(10), 0, 0);
+                    btnCompletarTarea.setLayoutParams(btnParams);
+
+                    btnCompletarTarea.setOnClickListener(v -> {
+                        boolean ok = dbHelper.marcarTareaCompletada(item.id);
+                        if (ok) {
+                            Toast.makeText(this, "Tarea completada", Toast.LENGTH_SHORT).show();
+                            recargarDatos();
+                        } else {
+                            Toast.makeText(this, "Error al completar la tarea", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    card.addView(btnCompletarTarea);
+                }
 
                 card.setOnClickListener(v -> mostrarDialogoEditarTarea(item));
 

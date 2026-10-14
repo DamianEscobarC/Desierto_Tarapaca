@@ -4,7 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -87,6 +91,14 @@ public class MainActivity extends AppCompatActivity {
         } else {
             cargarTareasPendientesHoy();
         }
+    }
+
+    private int dpToPx(int dp) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                dp,
+                getResources().getDisplayMetrics()
+        );
     }
 
     private void inicializarVistas() {
@@ -251,12 +263,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Cursor cursor = dbHelper.obtenerTareasPorFecha(fechaIso);
-        int totalTareas = 0;
+        int tareasPendientes = 0;
 
         if (cursor != null) {
-            totalTareas = cursor.getCount();
-
-            if (totalTareas == 0) {
+            if (cursor.getCount() == 0) {
                 TextView tvVacio = new TextView(this);
                 tvVacio.setText("No hay tareas programadas para este día.");
                 tvVacio.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
@@ -268,38 +278,66 @@ public class MainActivity extends AppCompatActivity {
                     int idxCliente = cursor.getColumnIndex("cliente");
                     int idxTipo = cursor.getColumnIndex("tipo");
                     int idxHora = cursor.getColumnIndex("hora");
+                    int idxEstado = cursor.getColumnIndex("estado");
 
                     String cliente = idxCliente != -1 ? cursor.getString(idxCliente) : "";
                     String tipo = idxTipo != -1 ? cursor.getString(idxTipo) : "";
                     String hora = idxHora != -1 ? cursor.getString(idxHora) : "";
+                    String estado = idxEstado != -1 ? cursor.getString(idxEstado) : "pendiente";
+
+                    boolean completada = estado.equalsIgnoreCase("Completada");
+                    if (!completada) {
+                        tareasPendientes++;
+                    }
 
                     LinearLayout fila = new LinearLayout(this);
                     fila.setOrientation(LinearLayout.HORIZONTAL);
+                    fila.setGravity(android.view.Gravity.CENTER_VERTICAL);
                     fila.setLayoutParams(new LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT));
-                    fila.setPadding(0, 8, 0, 8);
+                    fila.setPadding(0, dpToPx(5), 0, dpToPx(5));
 
                     TextView tvHoraItem = new TextView(this);
                     tvHoraItem.setText(hora);
-                    tvHoraItem.setTextColor(ContextCompat.getColor(this, R.color.text_main));
+                    tvHoraItem.setTextColor(completada ? ContextCompat.getColor(this, R.color.text_muted) : ContextCompat.getColor(this, R.color.text_main));
                     tvHoraItem.setTextSize(13);
-                    tvHoraItem.setLayoutParams(new LinearLayout.LayoutParams(130, LinearLayout.LayoutParams.WRAP_CONTENT));
+                    tvHoraItem.setLayoutParams(new LinearLayout.LayoutParams(dpToPx(52), LinearLayout.LayoutParams.WRAP_CONTENT));
 
                     TextView tvClienteItem = new TextView(this);
                     tvClienteItem.setText(cliente);
-                    tvClienteItem.setTextColor(ContextCompat.getColor(this, R.color.text_main));
+                    tvClienteItem.setTextColor(completada ? ContextCompat.getColor(this, R.color.text_muted) : ContextCompat.getColor(this, R.color.text_main));
                     tvClienteItem.setTextSize(13);
+                    if (completada) {
+                        tvClienteItem.setPaintFlags(tvClienteItem.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                    }
                     tvClienteItem.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
                     TextView tvTipoItem = new TextView(this);
                     tvTipoItem.setText(tipo);
                     tvTipoItem.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
-                    tvTipoItem.setTextSize(13);
+                    tvTipoItem.setTextSize(12);
 
                     fila.addView(tvHoraItem);
                     fila.addView(tvClienteItem);
                     fila.addView(tvTipoItem);
+
+                    if (completada) {
+                        TextView tvBadge = new TextView(this);
+                        tvBadge.setText("✓ Hecho");
+                        tvBadge.setTextColor(Color.parseColor("#137333"));
+                        tvBadge.setBackgroundColor(Color.parseColor("#E6F4EA"));
+                        tvBadge.setTextSize(10f);
+                        tvBadge.setTypeface(null, Typeface.BOLD);
+                        tvBadge.setPadding(dpToPx(6), dpToPx(2), dpToPx(6), dpToPx(2));
+
+                        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        badgeParams.setMarginStart(dpToPx(6));
+                        tvBadge.setLayoutParams(badgeParams);
+
+                        fila.addView(tvBadge);
+                    }
 
                     contenedorListaTareas.addView(fila);
                 }
@@ -308,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (tvCantidadTareasPendientes != null) {
-            tvCantidadTareasPendientes.setText(totalTareas + (totalTareas == 1 ? " tarea pendiente" : " tareas pendientes"));
+            tvCantidadTareasPendientes.setText(tareasPendientes + (tareasPendientes == 1 ? " tarea pendiente" : " tareas pendientes"));
         }
     }
 

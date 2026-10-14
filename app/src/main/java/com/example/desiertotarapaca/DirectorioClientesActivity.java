@@ -2,6 +2,7 @@ package com.example.desiertotarapaca;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -17,11 +18,14 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class DirectorioClientesActivity extends AppCompatActivity {
 
@@ -31,13 +35,17 @@ public class DirectorioClientesActivity extends AppCompatActivity {
         public String nombre;
         public String direccion;
         public String telefono;
+        public double latitud;
+        public double longitud;
 
-        public Cliente(long id, String rut, String nombre, String direccion, String telefono) {
+        public Cliente(long id, String rut, String nombre, String direccion, String telefono, double latitud, double longitud) {
             this.id = id;
             this.rut = rut;
             this.nombre = nombre;
             this.direccion = direccion;
             this.telefono = telefono;
+            this.latitud = latitud;
+            this.longitud = longitud;
         }
     }
 
@@ -49,6 +57,27 @@ public class DirectorioClientesActivity extends AppCompatActivity {
 
     private DbHelper dbHelper;
     private List<Cliente> listaClientes = new ArrayList<>();
+
+    private TextView tvCoordenadasDialogoActual;
+    private final double[] coordsCapturadas = new double[]{0.0, 0.0};
+
+    private final ActivityResultLauncher<Intent> selectorUbicacionLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    double lat = result.getData().getDoubleExtra("LATITUD_ELEGIDA", 0.0);
+                    double lng = result.getData().getDoubleExtra("LONGITUD_ELEGIDA", 0.0);
+
+                    coordsCapturadas[0] = lat;
+                    coordsCapturadas[1] = lng;
+
+                    if (tvCoordenadasDialogoActual != null) {
+                        tvCoordenadasDialogoActual.setText(String.format(Locale.getDefault(), "📍 GPS: %.4f, %.4f", lat, lng));
+                        tvCoordenadasDialogoActual.setTextColor(Color.parseColor("#2D6A4F"));
+                    }
+                }
+            }
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,16 +96,12 @@ public class DirectorioClientesActivity extends AppCompatActivity {
         btnAbrirDialogoAgregar.setOnClickListener(v -> mostrarDialogoAgregarCliente());
 
         etBuscadorCliente.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 renderizarClientes(s.toString().toLowerCase().trim());
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -99,6 +124,8 @@ public class DirectorioClientesActivity extends AppCompatActivity {
             int idxRut = cursor.getColumnIndex(DbHelper.COL_CLI_RUT);
             int idxFaena = cursor.getColumnIndex(DbHelper.COL_CLI_FAENA);
             int idxTel = cursor.getColumnIndex(DbHelper.COL_CLI_TELEFONO);
+            int idxLat = cursor.getColumnIndex(DbHelper.COL_CLI_LATITUD);
+            int idxLng = cursor.getColumnIndex(DbHelper.COL_CLI_LONGITUD);
 
             do {
                 long id = (idxId != -1) ? cursor.getLong(idxId) : 0;
@@ -106,8 +133,10 @@ public class DirectorioClientesActivity extends AppCompatActivity {
                 String rut = (idxRut != -1) ? cursor.getString(idxRut) : "";
                 String faena = (idxFaena != -1) ? cursor.getString(idxFaena) : "";
                 String telefono = (idxTel != -1) ? cursor.getString(idxTel) : "";
+                double lat = (idxLat != -1) ? cursor.getDouble(idxLat) : 0.0;
+                double lng = (idxLng != -1) ? cursor.getDouble(idxLng) : 0.0;
 
-                listaClientes.add(new Cliente(id, rut, nombre, faena, telefono));
+                listaClientes.add(new Cliente(id, rut, nombre, faena, telefono, lat, lng));
             } while (cursor.moveToNext());
 
             cursor.close();
@@ -164,6 +193,15 @@ public class DirectorioClientesActivity extends AppCompatActivity {
                 tvDir.setTextColor(colorMuted);
                 tvDir.setPadding(0, 4, 0, 0);
                 layoutCard.addView(tvDir);
+
+                if (cliente.latitud != 0.0 || cliente.longitud != 0.0) {
+                    TextView tvGps = new TextView(this);
+                    tvGps.setText(String.format(Locale.getDefault(), "🗺️ GPS: %.4f, %.4f", cliente.latitud, cliente.longitud));
+                    tvGps.setTextSize(11f);
+                    tvGps.setTextColor(Color.parseColor("#2D6A4F"));
+                    tvGps.setPadding(0, 2, 0, 0);
+                    layoutCard.addView(tvGps);
+                }
 
                 TextView tvTel = new TextView(this);
                 tvTel.setText("📞 " + cliente.telefono);
@@ -223,8 +261,21 @@ public class DirectorioClientesActivity extends AppCompatActivity {
         EditText etNombre = dialog.findViewById(R.id.etDialogNombre);
         EditText etDireccion = dialog.findViewById(R.id.etDialogDireccion);
         EditText etTelefono = dialog.findViewById(R.id.etDialogTelefono);
+        View btnElegirMapa = dialog.findViewById(R.id.btnElegirEnMapaDialogo);
+        TextView tvCoords = dialog.findViewById(R.id.tvCoordenadasSeleccionadas);
         Button btnCancelar = dialog.findViewById(R.id.btnDialogCancelar);
         AppCompatButton btnGuardar = dialog.findViewById(R.id.btnDialogGuardar);
+
+        coordsCapturadas[0] = 0.0;
+        coordsCapturadas[1] = 0.0;
+        tvCoordenadasDialogoActual = tvCoords;
+
+        if (btnElegirMapa != null) {
+            btnElegirMapa.setOnClickListener(v -> {
+                Intent intent = new Intent(DirectorioClientesActivity.this, SeleccionarUbicacionActivity.class);
+                selectorUbicacionLauncher.launch(intent);
+            });
+        }
 
         btnCancelar.setOnClickListener(v -> dialog.dismiss());
 
@@ -255,7 +306,15 @@ public class DirectorioClientesActivity extends AppCompatActivity {
                 return;
             }
 
-            boolean ok = dbHelper.insertarCliente(nombre, rut, direccion, telefono);
+            boolean ok = dbHelper.insertarCliente(
+                    nombre,
+                    rut,
+                    direccion,
+                    telefono,
+                    coordsCapturadas[0],
+                    coordsCapturadas[1]
+            );
+
             if (ok) {
                 Toast.makeText(this, "Cliente guardado con éxito", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();

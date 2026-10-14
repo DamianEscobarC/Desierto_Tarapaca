@@ -75,6 +75,9 @@
         <activity
             android:name=".MapaRutasActivity"
             android:exported="false" />
+        <activity
+            android:name=".SeleccionarUbicacionActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

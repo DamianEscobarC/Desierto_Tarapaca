@@ -82,10 +82,10 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvHorasTerreno"
+                android:id="@+id/tvTrabajosCompletados"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0 hrs"
+                android:text="0"
                 android:textColor="#2D5A43"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -94,7 +94,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="En Terreno"
+                android:gravity="center"
+                android:text="Trabajos Completados"
                 android:textColor="@color/text_muted"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -112,10 +113,10 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvPorcentajeFirmados"
+                android:id="@+id/tvTareasCompletadasConteo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0%"
+                android:text="0/0"
                 android:textColor="#2D5A43"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -124,7 +125,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Firmados"
+                android:gravity="center"
+                android:text="Tareas Completadas"
                 android:textColor="@color/text_muted"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -136,7 +138,7 @@
         android:layout_height="48dp"
         android:layout_marginBottom="12dp"
         android:background="@drawable/bg_white_card"
-        android:hint="🔍 Buscar por faena, OT o servicio..."
+        android:hint="🔍 Buscar por cliente o tipo de tarea..."
         android:inputType="text"
         android:paddingHorizontal="14dp"
         android:textColor="@color/text_main"
@@ -193,7 +195,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Sin servicios registrados"
+            android:text="Sin registros"
             android:textColor="@color/text_main"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -203,7 +205,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Los registros completados aparecerán aquí."
+            android:text="Los registros aparecerán aquí."
             android:textColor="@color/text_muted"
             android:textSize="13sp" />
     </LinearLayout>

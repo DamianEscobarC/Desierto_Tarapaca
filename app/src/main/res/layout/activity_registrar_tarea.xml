@@ -51,7 +51,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="DETALLES DE LA TAREA / AGENDAMIENTO"
+                android:text="DETALLES DE LA TAREA "
                 android:textColor="@color/text_muted"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -60,21 +60,48 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="CLIENTE"
+                android:text="CLIENTE (DIRECTORIO)"
                 android:textColor="@color/text_muted"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/etTareaCliente"
+            <LinearLayout
+                android:id="@+id/btnSeleccionarClienteModal"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="6dp"
                 android:background="@drawable/bg_input_field"
-                android:inputType="textCapWords"
-                android:paddingHorizontal="14dp"
-                android:textColor="@color/text_main"
-                android:textSize="14sp" />
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp">
+
+                <TextView
+                    android:id="@+id/tvClienteSeleccionadoTexto"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Toca para elegir cliente del directorio..."
+                    android:textColor="@color/text_muted"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="▼"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvUbicacionClienteInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Selecciona un cliente para cargar su faena y mapa"
+                android:textColor="@color/text_muted"
+                android:textSize="11sp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -91,6 +118,7 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="6dp"
                 android:background="@drawable/bg_input_field"
+                android:hint="Ej: Limpieza de baño, Mantención, etc."
                 android:inputType="textCapSentences"
                 android:paddingHorizontal="14dp"
                 android:textColor="@color/text_main"

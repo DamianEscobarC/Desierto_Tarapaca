@@ -21,6 +21,8 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.maplibre.android.MapLibre;
 import org.maplibre.android.annotations.MarkerOptions;
 import org.maplibre.android.annotations.PolylineOptions;
@@ -32,6 +34,10 @@ import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.android.maps.OnMapReadyCallback;
 import org.maplibre.android.maps.Style;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -48,19 +54,21 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
         public String origen;
         public double lat;
         public double lng;
+        public boolean completado;
 
-        public PuntoDestino(String titulo, String subtitulo, String origen, double lat, double lng) {
+        public PuntoDestino(String titulo, String subtitulo, String origen, double lat, double lng, boolean completado) {
             this.titulo = titulo;
             this.subtitulo = subtitulo;
             this.origen = origen;
             this.lat = lat;
             this.lng = lng;
+            this.completado = completado;
         }
     }
 
     private static final int CODIGO_PERMISO_GPS = 1001;
-    private static final double RENDIMIENTO_KM_POR_LITRO = 6.5;
-    private static final double PRECIO_DIESEL_CLP = 1050.0;
+    private static final double RENDIMIENTO_KM_POR_LITRO = 5.8;
+    private static final double PRECIO_COMBUSTIBLE_CLP = 1603.0;
 
     private LatLng ubicacionActualGps = new LatLng(-20.2208, -70.1390);
 
@@ -76,6 +84,9 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
     private BottomSheetBehavior<View> sheetBehavior;
     private LinearLayout contenedorItemsBanos;
     private TextView tvBadgeTotalBanos, tvSinRegistrosAviso;
+
+    private TextView tabMapaEnProceso, tabMapaCompletados;
+    private boolean mostrandoEnProceso = true;
 
     private DbHelper dbHelper;
     private final List<PuntoDestino> listaPuntosBD = new ArrayList<>();
@@ -118,8 +129,18 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
         tvBadgeTotalBanos = findViewById(R.id.tvBadgeTotalBanos);
         tvSinRegistrosAviso = findViewById(R.id.tvSinRegistrosAviso);
 
-        btnVolverMapa.setOnClickListener(v -> finish());
+        tabMapaEnProceso = findViewById(R.id.tabMapaEnProceso);
+        tabMapaCompletados = findViewById(R.id.tabMapaCompletados);
 
+        if (tabMapaEnProceso != null) {
+            tabMapaEnProceso.setOnClickListener(v -> cambiarTabPuntos(true));
+        }
+
+        if (tabMapaCompletados != null) {
+            tabMapaCompletados.setOnClickListener(v -> cambiarTabPuntos(false));
+        }
+
+        btnVolverMapa.setOnClickListener(v -> finish());
         btnCentrarGps.setOnClickListener(v -> obtenerUbicacionActualReal());
 
         btnBrujulaNorte.setOnClickListener(v -> {
@@ -166,6 +187,25 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
         }
 
         cargarPuntosDesdeBaseDeDatos();
+    }
+
+    private void cambiarTabPuntos(boolean enProceso) {
+        if (mostrandoEnProceso == enProceso) return;
+        mostrandoEnProceso = enProceso;
+
+        if (mostrandoEnProceso) {
+            tabMapaEnProceso.setBackgroundResource(R.drawable.bg_selected_day_circle);
+            tabMapaEnProceso.setTextColor(Color.WHITE);
+            tabMapaCompletados.setBackground(null);
+            tabMapaCompletados.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
+        } else {
+            tabMapaCompletados.setBackgroundResource(R.drawable.bg_selected_day_circle);
+            tabMapaCompletados.setTextColor(Color.WHITE);
+            tabMapaEnProceso.setBackground(null);
+            tabMapaEnProceso.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
+        }
+
+        actualizarVistaBottomSheet();
     }
 
     @Override
@@ -261,7 +301,7 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
 
             mapLibreMap.addMarker(new MarkerOptions()
                     .position(ubicacionActualGps)
-                    .setTitle("Mi Posición Actual"));
+                    .setTitle("Mi Posición"));
         }
     }
 
@@ -282,7 +322,7 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
                     ));
                     mapLibreMap.addMarker(new MarkerOptions()
                             .position(ubicacionActualGps)
-                            .setTitle("Mi Posición Actual"));
+                            .setTitle("Mi Posición"));
                 }
             }
         }
@@ -290,7 +330,41 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
 
     private void cargarPuntosDesdeBaseDeDatos() {
         listaPuntosBD.clear();
-        contenedorItemsBanos.removeAllViews();
+
+        try {
+            Cursor cursorBanos = dbHelper.obtenerTodosLosBanos();
+            if (cursorBanos != null && cursorBanos.moveToFirst()) {
+                int idxCodigo = cursorBanos.getColumnIndex(DbHelper.COL_BANO_CODIGO);
+                int idxCliente = cursorBanos.getColumnIndex(DbHelper.COL_BANO_CLIENTE);
+                int idxFaena = cursorBanos.getColumnIndex(DbHelper.COL_BANO_FAENA);
+                int idxEstado = cursorBanos.getColumnIndex(DbHelper.COL_BANO_ESTADO);
+                int idxLat = cursorBanos.getColumnIndex(DbHelper.COL_BANO_LATITUD);
+                int idxLng = cursorBanos.getColumnIndex(DbHelper.COL_BANO_LONGITUD);
+
+                do {
+                    String codigo = (idxCodigo != -1) ? cursorBanos.getString(idxCodigo) : "Baño";
+                    String cliente = (idxCliente != -1) ? cursorBanos.getString(idxCliente) : "Cliente";
+                    String faena = (idxFaena != -1) ? cursorBanos.getString(idxFaena) : "";
+                    String estado = (idxEstado != -1) ? cursorBanos.getString(idxEstado) : "Disponible";
+                    double lat = (idxLat != -1) ? cursorBanos.getDouble(idxLat) : 0.0;
+                    double lng = (idxLng != -1) ? cursorBanos.getDouble(idxLng) : 0.0;
+
+                    boolean completado = estado.equalsIgnoreCase("Disponible");
+
+                    if (lat != 0.0 && lng != 0.0) {
+                        listaPuntosBD.add(new PuntoDestino(
+                                codigo + " · " + cliente,
+                                faena.isEmpty() ? ("Estado: " + estado) : (faena + " (" + estado + ")"),
+                                "🚽 Baño Químico",
+                                lat,
+                                lng,
+                                completado
+                        ));
+                    }
+                } while (cursorBanos.moveToNext());
+                cursorBanos.close();
+            }
+        } catch (Exception ignored) {}
 
         try {
             Cursor cursorServicios = dbHelper.obtenerTodosLosServicios();
@@ -299,25 +373,33 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
                 int idxTipo = cursorServicios.getColumnIndex(DbHelper.COL_TIPO);
                 int idxDesc = cursorServicios.getColumnIndex(DbHelper.COL_DESCRIPCION);
                 int idxOt = cursorServicios.getColumnIndex(DbHelper.COL_OT);
+                int idxFirm = cursorServicios.getColumnIndex(DbHelper.COL_FIRMADO);
 
                 do {
                     String cliente = (idxCli != -1) ? cursorServicios.getString(idxCli) : "Cliente";
                     String tipo = (idxTipo != -1) ? cursorServicios.getString(idxTipo) : "Servicio";
                     String desc = (idxDesc != -1) ? cursorServicios.getString(idxDesc) : "";
                     String ot = (idxOt != -1) ? cursorServicios.getString(idxOt) : "OT";
+                    boolean completado = (idxFirm != -1) && (cursorServicios.getInt(idxFirm) == 1);
 
                     LatLng coords = extraerCoordenadasDeTexto(desc);
                     if (coords == null) {
-                        coords = new LatLng(-20.9705, -68.6750);
+                        double[] coordsCliente = dbHelper.obtenerCoordenadasCliente(cliente);
+                        if (coordsCliente != null && (coordsCliente[0] != 0.0 || coordsCliente[1] != 0.0)) {
+                            coords = new LatLng(coordsCliente[0], coordsCliente[1]);
+                        }
                     }
 
-                    listaPuntosBD.add(new PuntoDestino(
-                            cliente,
-                            tipo + " · " + ot,
-                            "🛠 Servicio Registrado",
-                            coords.getLatitude(),
-                            coords.getLongitude()
-                    ));
+                    if (coords != null) {
+                        listaPuntosBD.add(new PuntoDestino(
+                                cliente,
+                                tipo + " · " + ot,
+                                "🛠 Servicio Registrado",
+                                coords.getLatitude(),
+                                coords.getLongitude(),
+                                completado
+                        ));
+                    }
                 } while (cursorServicios.moveToNext());
                 cursorServicios.close();
             }
@@ -330,22 +412,27 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
                 int idxTipo = cursorTareas.getColumnIndex(DbHelper.COL_TAREA_TIPO);
                 int idxFecha = cursorTareas.getColumnIndex(DbHelper.COL_TAREA_FECHA);
                 int idxHora = cursorTareas.getColumnIndex(DbHelper.COL_TAREA_HORA);
+                int idxEstado = cursorTareas.getColumnIndex(DbHelper.COL_TAREA_ESTADO);
 
                 do {
                     String cliente = (idxCli != -1) ? cursorTareas.getString(idxCli) : "Cliente";
                     String tipo = (idxTipo != -1) ? cursorTareas.getString(idxTipo) : "Tarea";
                     String fecha = (idxFecha != -1) ? cursorTareas.getString(idxFecha) : "";
                     String hora = (idxHora != -1) ? cursorTareas.getString(idxHora) : "";
+                    String estado = (idxEstado != -1) ? cursorTareas.getString(idxEstado) : "pendiente";
+                    boolean completada = estado.equalsIgnoreCase("Completada");
 
-                    LatLng coords = new LatLng(-20.2740, -70.1085);
-
-                    listaPuntosBD.add(new PuntoDestino(
-                            cliente,
-                            tipo + " · " + fecha + " " + hora,
-                            "📅 Tarea Agendada",
-                            coords.getLatitude(),
-                            coords.getLongitude()
-                    ));
+                    double[] coordsCliente = dbHelper.obtenerCoordenadasCliente(cliente);
+                    if (coordsCliente != null && (coordsCliente[0] != 0.0 || coordsCliente[1] != 0.0)) {
+                        listaPuntosBD.add(new PuntoDestino(
+                                cliente,
+                                tipo + " · " + fecha + " " + hora,
+                                "📅 Tarea Agendada",
+                                coordsCliente[0],
+                                coordsCliente[1],
+                                completada
+                        ));
+                    }
                 } while (cursorTareas.moveToNext());
                 cursorTareas.close();
             }
@@ -355,7 +442,18 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void actualizarVistaBottomSheet() {
-        int total = listaPuntosBD.size();
+        contenedorItemsBanos.removeAllViews();
+
+        List<PuntoDestino> filtrados = new ArrayList<>();
+        for (PuntoDestino p : listaPuntosBD) {
+            if (mostrandoEnProceso && !p.completado) {
+                filtrados.add(p);
+            } else if (!mostrandoEnProceso && p.completado) {
+                filtrados.add(p);
+            }
+        }
+
+        int total = filtrados.size();
         tvBadgeTotalBanos.setText(total + (total == 1 ? " registro" : " registros"));
 
         if (total == 0) {
@@ -366,7 +464,7 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
         tvSinRegistrosAviso.setVisibility(View.GONE);
         LayoutInflater inflater = LayoutInflater.from(this);
 
-        for (PuntoDestino punto : listaPuntosBD) {
+        for (PuntoDestino punto : filtrados) {
             View itemView = inflater.inflate(R.layout.item_bano_arrendado, contenedorItemsBanos, false);
 
             TextView tvTitulo = itemView.findViewById(R.id.tvTituloItemDestino);
@@ -394,39 +492,116 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
 
         mapLibreMap.addMarker(new MarkerOptions()
                 .position(ubicacionActualGps)
-                .setTitle("Mi Posición Actual"));
+                .setTitle("Mi Posición"));
 
         mapLibreMap.addMarker(new MarkerOptions()
                 .position(destino)
                 .setTitle(tituloDestino));
 
+        obtenerRutaPorCarretera(ubicacionActualGps, destino, tituloDestino);
+    }
+
+    private void obtenerRutaPorCarretera(LatLng origen, LatLng destino, String tituloDestino) {
+        new Thread(() -> {
+            boolean exito = false;
+            String urlStr = String.format(Locale.US,
+                    "https://router.project-osrm.org/route/v1/driving/%f,%f;%f,%f?overview=full&geometries=geojson",
+                    origen.getLongitude(), origen.getLatitude(),
+                    destino.getLongitude(), destino.getLatitude());
+
+            try {
+                URL url = new URL(urlStr);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(8000);
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile) DesiertoTarapacaApp/1.0");
+                conn.setRequestProperty("Accept", "application/json");
+
+                int responseCode = conn.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String linea;
+                    while ((linea = reader.readLine()) != null) {
+                        sb.append(linea);
+                    }
+                    reader.close();
+
+                    JSONObject json = new JSONObject(sb.toString());
+                    JSONArray routes = json.optJSONArray("routes");
+
+                    if (routes != null && routes.length() > 0) {
+                        JSONObject ruta = routes.getJSONObject(0);
+
+                        double distanciaMetros = ruta.getDouble("distance");
+                        double distanciaKmReal = distanciaMetros / 1000.0;
+
+                        JSONArray coordinates = ruta.getJSONObject("geometry").getJSONArray("coordinates");
+                        List<LatLng> puntosRuta = new ArrayList<>();
+                        for (int i = 0; i < coordinates.length(); i++) {
+                            JSONArray coord = coordinates.getJSONArray(i);
+                            puntosRuta.add(new LatLng(coord.getDouble(1), coord.getDouble(0)));
+                        }
+
+                        exito = true;
+                        runOnUiThread(() -> {
+                            mapLibreMap.addPolyline(new PolylineOptions()
+                                    .addAll(puntosRuta)
+                                    .color(Color.parseColor("#2D6A4F"))
+                                    .width(7f));
+
+                            mapLibreMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                                    new CameraPosition.Builder()
+                                            .target(destino)
+                                            .zoom(13.5)
+                                            .build()
+                            ), 1000);
+
+                            double litrosEstimados = distanciaKmReal / RENDIMIENTO_KM_POR_LITRO;
+                            double costoTotalClp = litrosEstimados * PRECIO_COMBUSTIBLE_CLP;
+
+                            DecimalFormat dfClp = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("es", "CL")));
+                            DecimalFormat dfDecimal = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("es", "CL")));
+
+                            tvValorDistancia.setText(dfDecimal.format(distanciaKmReal) + " km");
+                            tvValorCombustible.setText(dfDecimal.format(litrosEstimados) + " L");
+                            tvValorCostoClp.setText("$" + dfClp.format(costoTotalClp));
+                            tvRutaDetallePie.setText(tituloDestino + " · Conducción por calles · OSRM");
+
+                            layoutEstadoInicialTrayecto.setVisibility(View.GONE);
+                            layoutRutaActivaMetricas.setVisibility(View.VISIBLE);
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (!exito) {
+                runOnUiThread(() -> trazarRutaDirectaFallback(origen, destino, tituloDestino));
+            }
+        }).start();
+    }
+
+    private void trazarRutaDirectaFallback(LatLng origen, LatLng destino, String tituloDestino) {
         mapLibreMap.addPolyline(new PolylineOptions()
-                .add(ubicacionActualGps, destino)
+                .add(origen, destino)
                 .color(Color.parseColor("#2D6A4F"))
                 .width(6f));
 
-        mapLibreMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                new CameraPosition.Builder()
-                        .target(destino)
-                        .zoom(13.5)
-                        .build()
-        ), 1200);
-
-        double distanciaKm = calcularDistanciaHaversine(
-                ubicacionActualGps.getLatitude(), ubicacionActualGps.getLongitude(),
-                destino.getLatitude(), destino.getLongitude()
-        );
-
-        double litrosEstimados = distanciaKm / RENDIMIENTO_KM_POR_LITRO;
-        double costoTotalClp = litrosEstimados * PRECIO_DIESEL_CLP;
+        double distanciaKm = calcularDistanciaHaversine(origen.getLatitude(), origen.getLongitude(), destino.getLatitude(), destino.getLongitude());
+        double distanciaAproxCarretera = distanciaKm * 1.35;
+        double litrosEstimados = distanciaAproxCarretera / RENDIMIENTO_KM_POR_LITRO;
+        double costoTotalClp = litrosEstimados * PRECIO_COMBUSTIBLE_CLP;
 
         DecimalFormat dfClp = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("es", "CL")));
         DecimalFormat dfDecimal = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("es", "CL")));
 
-        tvValorDistancia.setText(dfDecimal.format(distanciaKm) + " km");
+        tvValorDistancia.setText(dfDecimal.format(distanciaAproxCarretera) + " km");
         tvValorCombustible.setText(dfDecimal.format(litrosEstimados) + " L");
         tvValorCostoClp.setText("$" + dfClp.format(costoTotalClp));
-        tvRutaDetallePie.setText(tituloDestino + " · Solo ida · Valores estimados");
+        tvRutaDetallePie.setText(tituloDestino + " · Estimado");
 
         layoutEstadoInicialTrayecto.setVisibility(View.GONE);
         layoutRutaActivaMetricas.setVisibility(View.VISIBLE);
@@ -457,31 +632,20 @@ public class MapaRutasActivity extends AppCompatActivity implements OnMapReadyCa
         return null;
     }
 
-    @Override
-    protected void onStart() { super.onStart(); mapView.onStart(); }
-
+    @Override protected void onStart() { super.onStart(); mapView.onStart(); }
     @Override
     protected void onResume() {
         super.onResume();
         mapView.onResume();
         cargarPuntosDesdeBaseDeDatos();
     }
-
-    @Override
-    protected void onPause() { super.onPause(); mapView.onPause(); }
-
-    @Override
-    protected void onStop() { super.onStop(); mapView.onStop(); }
-
+    @Override protected void onPause() { super.onPause(); mapView.onPause(); }
+    @Override protected void onStop() { super.onStop(); mapView.onStop(); }
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
     }
-
-    @Override
-    public void onLowMemory() { super.onLowMemory(); mapView.onLowMemory(); }
-
-    @Override
-    protected void onDestroy() { super.onDestroy(); mapView.onDestroy(); }
+    @Override public void onLowMemory() { super.onLowMemory(); mapView.onLowMemory(); }
+    @Override protected void onDestroy() { super.onDestroy(); mapView.onDestroy(); }
 }

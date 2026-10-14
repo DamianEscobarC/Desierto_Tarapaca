@@ -438,6 +438,38 @@
                     android:textStyle="bold" />
             </RelativeLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_input_field"
+                android:orientation="horizontal"
+                android:padding="3dp">
+
+                <TextView
+                    android:id="@+id/tabMapaEnProceso"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_selected_day_circle"
+                    android:gravity="center"
+                    android:text="⏳ En Proceso"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tabMapaCompletados"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="✓ Completados"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -465,7 +497,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="40dp"
                         android:gravity="center"
-                        android:text="No hay baños ni servicios con coordenadas en la base de datos."
+                        android:text="No hay registros para mostrar en esta sección."
                         android:textColor="#9CA3AF"
                         android:textSize="13sp"
                         android:visibility="gone" />

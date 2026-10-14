@@ -12,7 +12,7 @@ import java.util.List;
 public class DbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DesiertoTarapaca.db";
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 7;
 
     public static final String TABLA_SERVICIOS = "servicios";
     public static final String COL_ID = "id";
@@ -54,6 +54,18 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String COL_CLI_RUT = "rut";
     public static final String COL_CLI_FAENA = "faena";
     public static final String COL_CLI_TELEFONO = "telefono";
+    public static final String COL_CLI_LATITUD = "latitud";
+    public static final String COL_CLI_LONGITUD = "longitud";
+
+    public static final String TABLA_BANOS = "banos";
+    public static final String COL_BANO_ID = "id";
+    public static final String COL_BANO_CODIGO = "codigo";
+    public static final String COL_BANO_TIPO = "tipo";
+    public static final String COL_BANO_CLIENTE = "cliente";
+    public static final String COL_BANO_FAENA = "faena";
+    public static final String COL_BANO_ESTADO = "estado";
+    public static final String COL_BANO_LATITUD = "latitud";
+    public static final String COL_BANO_LONGITUD = "longitud";
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -104,8 +116,21 @@ public class DbHelper extends SQLiteOpenHelper {
                 COL_CLI_NOMBRE + " TEXT, " +
                 COL_CLI_RUT + " TEXT, " +
                 COL_CLI_FAENA + " TEXT, " +
-                COL_CLI_TELEFONO + " TEXT)";
+                COL_CLI_TELEFONO + " TEXT, " +
+                COL_CLI_LATITUD + " REAL, " +
+                COL_CLI_LONGITUD + " REAL)";
         db.execSQL(crearTablaClientes);
+
+        String crearTablaBanos = "CREATE TABLE " + TABLA_BANOS + " (" +
+                COL_BANO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_BANO_CODIGO + " TEXT UNIQUE, " +
+                COL_BANO_TIPO + " TEXT, " +
+                COL_BANO_CLIENTE + " TEXT, " +
+                COL_BANO_FAENA + " TEXT, " +
+                COL_BANO_ESTADO + " TEXT, " +
+                COL_BANO_LATITUD + " REAL, " +
+                COL_BANO_LONGITUD + " REAL)";
+        db.execSQL(crearTablaBanos);
     }
 
     @Override
@@ -115,6 +140,7 @@ public class DbHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_TAREAS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_INVENTARIO);
         db.execSQL("DROP TABLE IF EXISTS " + TABLA_CLIENTES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLA_BANOS);
         onCreate(db);
     }
 
@@ -126,7 +152,6 @@ public class DbHelper extends SQLiteOpenHelper {
         return existe;
     }
 
-
     public boolean registrarUsuario(String nombre, String correo, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -136,7 +161,6 @@ public class DbHelper extends SQLiteOpenHelper {
         long resultado = db.insert(TABLA_USUARIOS, null, cv);
         return resultado != -1;
     }
-
 
     public boolean validarLogin(String correo, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -187,6 +211,7 @@ public class DbHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLA_SERVICIOS + " WHERE " + COL_ID + " = ?", new String[]{String.valueOf(id)});
     }
+
     public String obtenerNombreUsuario(String correo) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT " + COL_USER_NOMBRE + " FROM " + TABLA_USUARIOS + " WHERE " + COL_USER_CORREO + " = ?", new String[]{correo.toLowerCase().trim()});
@@ -202,6 +227,7 @@ public class DbHelper extends SQLiteOpenHelper {
         }
         return nombre;
     }
+
     public Cursor obtenerDatosUsuario(String correo) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLA_USUARIOS + " WHERE " + COL_USER_CORREO + " = ?", new String[]{correo.toLowerCase().trim()});
@@ -229,6 +255,7 @@ public class DbHelper extends SQLiteOpenHelper {
         long resultado = db.insert(TABLA_TAREAS, null, cv);
         return resultado != -1;
     }
+
     public Cursor obtenerTareasPorFecha(String fecha) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLA_TAREAS + " WHERE " + COL_TAREA_FECHA + " = ? ORDER BY " + COL_TAREA_HORA + " ASC", new String[]{fecha});
@@ -263,13 +290,20 @@ public class DbHelper extends SQLiteOpenHelper {
         return filas > 0;
     }
 
+    public boolean marcarTareaCompletada(long idTarea) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_TAREA_ESTADO, "Completada");
+        int filas = db.update(TABLA_TAREAS, cv, COL_TAREA_ID + " = ?", new String[]{String.valueOf(idTarea)});
+        return filas > 0;
+    }
+
     public boolean eliminarTarea(long id) {
         SQLiteDatabase db = this.getWritableDatabase();
         int filas = db.delete(TABLA_TAREAS, COL_TAREA_ID + " = ?", new String[]{String.valueOf(id)});
         return filas > 0;
     }
 
-    //PRODUCTOS QUIMICOS
     public boolean insertarProductoQuimico(String nombre, String tipo, double stock, String unidad) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -290,6 +324,7 @@ public class DbHelper extends SQLiteOpenHelper {
                     new String[]{"%" + filtro.trim() + "%"});
         }
     }
+
     public boolean actualizarProductoQuimico(long id, String nombre, String tipo, double stock, String unidad) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -325,14 +360,20 @@ public class DbHelper extends SQLiteOpenHelper {
         if (cursor != null) cursor.close();
         return false;
     }
-        //Para el Direcotrio
+
     public boolean insertarCliente(String nombre, String rut, String faena, String telefono) {
+        return insertarCliente(nombre, rut, faena, telefono, 0.0, 0.0);
+    }
+
+    public boolean insertarCliente(String nombre, String rut, String faena, String telefono, double latitud, double longitud) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(COL_CLI_NOMBRE, nombre.trim());
         cv.put(COL_CLI_RUT, rut.trim());
         cv.put(COL_CLI_FAENA, faena.trim());
         cv.put(COL_CLI_TELEFONO, telefono.trim());
+        cv.put(COL_CLI_LATITUD, latitud);
+        cv.put(COL_CLI_LONGITUD, longitud);
         long res = db.insert(TABLA_CLIENTES, null, cv);
         return res != -1;
     }
@@ -362,9 +403,139 @@ public class DbHelper extends SQLiteOpenHelper {
         return lista;
     }
 
+    public double[] obtenerCoordenadasCliente(String nombreCliente) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COL_CLI_LATITUD + ", " + COL_CLI_LONGITUD +
+                " FROM " + TABLA_CLIENTES + " WHERE " + COL_CLI_NOMBRE + " = ? LIMIT 1", new String[]{nombreCliente});
+        double[] coords = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            int idxLat = cursor.getColumnIndex(COL_CLI_LATITUD);
+            int idxLng = cursor.getColumnIndex(COL_CLI_LONGITUD);
+            if (idxLat != -1 && idxLng != -1) {
+                coords = new double[]{cursor.getDouble(idxLat), cursor.getDouble(idxLng)};
+            }
+            cursor.close();
+        }
+        return coords;
+    }
+
     public boolean eliminarCliente(long id) {
         SQLiteDatabase db = this.getWritableDatabase();
         int filas = db.delete(TABLA_CLIENTES, COL_CLI_ID + "=?", new String[]{String.valueOf(id)});
         return filas > 0;
+    }
+
+    public Cursor obtenerTodosLosBanos() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLA_BANOS + " ORDER BY " + COL_BANO_CODIGO + " ASC", null);
+    }
+
+    public void actualizarUbicacionBano(String codigo, double lat, double lng) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_BANO_LATITUD, lat);
+        cv.put(COL_BANO_LONGITUD, lng);
+        db.update(TABLA_BANOS, cv, COL_BANO_CODIGO + " = ?", new String[]{codigo});
+    }
+    public long insertarBano(String codigo, String tipoModelo, String estado) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_BANO_CODIGO, codigo.trim().toUpperCase());
+        cv.put(COL_BANO_TIPO, tipoModelo != null ? tipoModelo.trim() : "Estándar");
+        cv.put(COL_BANO_CLIENTE, "En Bodega");
+        cv.put(COL_BANO_FAENA, "Taller Central");
+        cv.put(COL_BANO_ESTADO, estado != null ? estado.trim() : "Disponible");
+        cv.put(COL_BANO_LATITUD, 0.0);
+        cv.put(COL_BANO_LONGITUD, 0.0);
+        return db.insertWithOnConflict(TABLA_BANOS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    public int actualizarEstadoBano(String codigo, String nuevoEstado) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_BANO_ESTADO, nuevoEstado.trim());
+        if (nuevoEstado.equalsIgnoreCase("Disponible") || nuevoEstado.equalsIgnoreCase("En Mantención")) {
+            cv.put(COL_BANO_CLIENTE, "En Bodega");
+            cv.put(COL_BANO_FAENA, "Taller Central");
+            cv.put(COL_BANO_LATITUD, 0.0);
+            cv.put(COL_BANO_LONGITUD, 0.0);
+        }
+        return db.update(TABLA_BANOS, cv, COL_BANO_CODIGO + " = ?", new String[]{codigo.trim().toUpperCase()});
+    }
+
+    public Cursor obtenerTodosLosBanosInventario() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLA_BANOS + " ORDER BY " + COL_BANO_CODIGO + " ASC", null);
+    }
+
+    public Cursor obtenerBanosPorEstado(String estado) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLA_BANOS + " WHERE LOWER(" + COL_BANO_ESTADO + ") = LOWER(?) ORDER BY " + COL_BANO_CODIGO + " ASC", new String[]{estado.trim()});
+    }
+
+    public boolean eliminarBano(String codigo) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int filas = db.delete(TABLA_BANOS, COL_BANO_CODIGO + " = ?", new String[]{codigo.trim().toUpperCase()});
+        return filas > 0;
+    }
+    public String obtenerSiguienteCodigoBano() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COL_BANO_CODIGO + " FROM " + TABLA_BANOS, null);
+        int maxNumero = 0;
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String cod = cursor.getString(0);
+                if (cod != null && cod.toUpperCase().startsWith("BP-")) {
+                    try {
+                        int num = Integer.parseInt(cod.substring(3).trim());
+                        if (num > maxNumero) {
+                            maxNumero = num;
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            cursor.close();
+        }
+
+        int siguiente = maxNumero + 1;
+        return String.format(java.util.Locale.US, "BP-%02d", siguiente);
+    }
+    public boolean completarServicioYLiberarBanos(long idServicio, String descripcionServicio) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put(COL_FIRMADO, 1);
+            int filas = db.update(TABLA_SERVICIOS, cv, COL_ID + " = ?", new String[]{String.valueOf(idServicio)});
+
+            if (descripcionServicio != null && descripcionServicio.contains("Baños:")) {
+                try {
+                    int inicio = descripcionServicio.indexOf("Baños:") + 6;
+                    int fin = descripcionServicio.indexOf(".", inicio);
+                    if (fin != -1) {
+                        String sub = descripcionServicio.substring(inicio, fin);
+                        String[] codigos = sub.split(",");
+                        for (String cod : codigos) {
+                            String codigoLimpio = cod.trim().toUpperCase();
+                            if (!codigoLimpio.isEmpty()) {
+                                // Volver a estado Disponible en Bodega
+                                ContentValues cvBano = new ContentValues();
+                                cvBano.put(COL_BANO_ESTADO, "Disponible");
+                                cvBano.put(COL_BANO_CLIENTE, "En Bodega");
+                                cvBano.put(COL_BANO_LATITUD, 0.0);
+                                cvBano.put(COL_BANO_LONGITUD, 0.0);
+                                db.update(TABLA_BANOS, cvBano, COL_BANO_CODIGO + " = ?", new String[]{codigoLimpio});
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+
+            db.setTransactionSuccessful();
+            return filas > 0;
+        } finally {
+            db.endTransaction();
+        }
     }
 }
