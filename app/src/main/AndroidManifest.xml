@@ -72,6 +72,9 @@
             android:name=".InventarioQuimicosActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".MapaRutasActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

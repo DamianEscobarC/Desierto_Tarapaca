@@ -585,7 +585,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        android:text=""
+                        android:text="Mapa y Rutas"
                         android:textColor="@color/text_light"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -593,7 +593,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=""
+                        android:text="Navegación y faenas"
                         android:textColor="@color/green_tile_subtext"
                         android:textSize="11sp" />
                 </LinearLayout>

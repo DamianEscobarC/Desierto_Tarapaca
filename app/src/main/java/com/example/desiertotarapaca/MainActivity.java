@@ -139,6 +139,16 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(MainActivity.this, DirectorioClientesActivity.class)));
         }
 
+        if (cardMapaGps != null) {
+            cardMapaGps.setOnClickListener(v ->
+                    startActivity(new Intent(MainActivity.this, MapaRutasActivity.class)));
+        }
+
+        if (cardRuta != null) {
+            cardRuta.setOnClickListener(v ->
+                    startActivity(new Intent(MainActivity.this, MapaRutasActivity.class)));
+        }
+
         if (btnFinalizarDia != null) {
             btnFinalizarDia.setOnClickListener(v ->
                     Toast.makeText(this, "Generando reporte de cierre PDF...", Toast.LENGTH_LONG).show());
