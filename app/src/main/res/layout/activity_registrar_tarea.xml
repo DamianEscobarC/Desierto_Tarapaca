@@ -118,7 +118,6 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="6dp"
                 android:background="@drawable/bg_input_field"
-                android:hint="Ej: Limpieza de baño, Mantención, etc."
                 android:inputType="textCapSentences"
                 android:paddingHorizontal="14dp"
                 android:textColor="@color/text_main"

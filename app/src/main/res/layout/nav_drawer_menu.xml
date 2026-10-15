@@ -78,7 +78,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="EQUIPO OPERACIONES · ZONA CENTRO"
         android:textColor="#6B7F74"
         android:textSize="10sp"
         android:textStyle="bold" />
