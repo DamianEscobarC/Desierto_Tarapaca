@@ -507,7 +507,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:text="Inventario Químicos"
+                        android:text="Control de Inventario"
                         android:textColor="@color/text_light"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -557,81 +557,54 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/cardMapaGps"
                 android:layout_width="match_parent"
-                android:layout_height="125dp"
+                android:layout_height="90dp"
                 android:layout_marginTop="12dp"
+                android:background="@drawable/bg_green_tile"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:weightSum="2">
+                android:paddingHorizontal="20dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_dialog_map"
+                    app:tint="@color/text_light" />
 
                 <LinearLayout
-                    android:id="@+id/cardMapaGps"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginEnd="6dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_green_tile"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_dialog_map"
-                        app:tint="@color/text_light" />
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
                         android:text="Mapa y Rutas"
                         android:textColor="@color/text_light"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Navegación y faenas"
+                        android:layout_marginTop="2dp"
+                        android:text="Navegación y faenas en terreno"
                         android:textColor="@color/green_tile_subtext"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/cardRuta"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_green_tile"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_menu_directions"
-                        app:tint="@color/text_light" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:text=""
-                        android:textColor="@color/text_light"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=""
-                        android:textColor="@color/green_tile_subtext"
-                        android:textSize="11sp" />
-                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="→"
+                    android:textColor="@color/text_light"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <TextView

@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout contenedorListaTareas;
 
     private LinearLayout cardRegistrarServicio, cardConsultarRegistros, cardInventario;
-    private LinearLayout cardDirectorioClientes, cardMapaGps, cardRuta;
+    private LinearLayout cardDirectorioClientes, cardMapaGps;
     private Button btnFinalizarDia;
 
     private DrawerLayout drawerLayout;
@@ -126,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
         cardInventario = findViewById(R.id.cardInventario);
         cardDirectorioClientes = findViewById(R.id.cardDirectorioClientes);
         cardMapaGps = findViewById(R.id.cardMapaGps);
-        cardRuta = findViewById(R.id.cardRuta);
         btnFinalizarDia = findViewById(R.id.btnFinalizarDia);
     }
 
@@ -153,11 +152,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (cardMapaGps != null) {
             cardMapaGps.setOnClickListener(v ->
-                    startActivity(new Intent(MainActivity.this, MapaRutasActivity.class)));
-        }
-
-        if (cardRuta != null) {
-            cardRuta.setOnClickListener(v ->
                     startActivity(new Intent(MainActivity.this, MapaRutasActivity.class)));
         }
 
