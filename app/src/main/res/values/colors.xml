@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="home_bg">#F4F5F7</color>
+    <color name="card_white">#FFFFFF</color>
+
+
+    <color name="green_tile">#2D6A4F</color>
+    <color name="green_tile_pressed">#1B4332</color>
+    <color name="green_tile_subtext">#D8F3DC</color>
+
+
+    <color name="btn_dark_close">#212529</color>
+
+
+    <color name="green_primary">#2D5A43</color>
+    <color name="text_main">#1B2E24</color>
+    <color name="text_muted">#6B7F74</color>
+    <color name="text_light">#FFFFFF</color>
+
+
+    <color name="border_light">#E0E0E0</color>
+
+
+</resources>
