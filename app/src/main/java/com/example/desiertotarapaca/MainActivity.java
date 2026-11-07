@@ -1,5 +1,7 @@
 package com.example.desiertotarapaca;
 
+import android.net.Uri;
+import androidx.core.content.FileProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -156,8 +159,73 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (btnFinalizarDia != null) {
-            btnFinalizarDia.setOnClickListener(v ->
-                    Toast.makeText(this, "Generando reporte de cierre PDF...", Toast.LENGTH_LONG).show());
+            btnFinalizarDia.setOnClickListener(v -> {
+
+                btnFinalizarDia.setEnabled(false);
+
+                Toast.makeText(this,
+                        "Generando reporte de cierre...",
+                        Toast.LENGTH_SHORT).show();
+
+                new Thread(() -> {
+                    try {
+                        java.io.File archivo = ExcelExporter.generarExcel(
+                                getApplicationContext()
+                        );
+
+
+                        runOnUiThread(() -> {
+                            btnFinalizarDia.setEnabled(true);
+
+                            try {
+                                Uri uri = FileProvider.getUriForFile(
+                                        MainActivity.this,
+                                        getPackageName() + ".fileprovider",
+                                        archivo
+                                );
+
+                                Intent compartir = new Intent(Intent.ACTION_SEND);
+                                compartir.setType(
+                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                );
+                                compartir.putExtra(Intent.EXTRA_STREAM, uri);
+                                compartir.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                compartir.setClipData(
+                                        android.content.ClipData.newRawUri("Reporte Excel", uri)
+                                );
+
+                                Intent selector = Intent.createChooser(
+                                        compartir,
+                                        "Compartir reporte Excel"
+                                );
+
+                                startActivity(selector);
+
+                            } catch (Exception e) {
+                                android.util.Log.e(
+                                        "ExcelExporter",
+                                        "Error al compartir el archivo",
+                                        e
+                                );
+
+                                Toast.makeText(this,
+                                        "Excel generado, pero no se pudo compartir",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
+
+
+                    } catch (Exception e) {
+                        android.util.Log.e(
+                                "ExcelExporter",
+                                "Error al generar el reporte",
+                                e
+                        );
+
+
+                    }
+                }).start();
+            });
         }
     }
 
