@@ -97,22 +97,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginVertical="20dp"
-            android:background="#E2E8F0" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnCerrarSesion"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="#FFEBEE"
-            android:text="Cerrar Sesión"
-            android:textColor="#C62828"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
     </LinearLayout>
 
     <View
