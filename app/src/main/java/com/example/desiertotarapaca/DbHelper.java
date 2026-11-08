@@ -13,6 +13,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DesiertoTarapaca.db";
     private static final int DATABASE_VERSION = 7;
+    private final Context appContext;
 
     public static final String TABLA_SERVICIOS = "servicios";
     public static final String COL_ID = "id";
@@ -69,6 +70,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.appContext = context.getApplicationContext();
     }
 
     @Override
@@ -309,6 +311,9 @@ public class DbHelper extends SQLiteOpenHelper {
         cv.put(COL_TAREA_FECHA, fecha);
         cv.put(COL_TAREA_ESTADO, "pendiente");
         long resultado = db.insert(TABLA_TAREAS, null, cv);
+        if (resultado != -1) {
+            AvisosTareas.programar(appContext, resultado, cliente, tipo, hora, fecha);
+        }
         return resultado != -1;
     }
 
@@ -343,6 +348,13 @@ public class DbHelper extends SQLiteOpenHelper {
         cv.put(COL_TAREA_FECHA, fecha);
         cv.put(COL_TAREA_ESTADO, estado);
         int filas = db.update(TABLA_TAREAS, cv, COL_TAREA_ID + " = ?", new String[]{String.valueOf(id)});
+        if (filas > 0) {
+            if ("Completada".equalsIgnoreCase(estado)) {
+                AvisosTareas.cancelar(appContext, id);
+            } else {
+                AvisosTareas.programar(appContext, id, cliente, tipo, hora, fecha);
+            }
+        }
         return filas > 0;
     }
 
@@ -351,12 +363,14 @@ public class DbHelper extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(COL_TAREA_ESTADO, "Completada");
         int filas = db.update(TABLA_TAREAS, cv, COL_TAREA_ID + " = ?", new String[]{String.valueOf(idTarea)});
+        if (filas > 0) AvisosTareas.cancelar(appContext, idTarea);
         return filas > 0;
     }
 
     public boolean eliminarTarea(long id) {
         SQLiteDatabase db = this.getWritableDatabase();
         int filas = db.delete(TABLA_TAREAS, COL_TAREA_ID + " = ?", new String[]{String.valueOf(id)});
+        if (filas > 0) AvisosTareas.cancelar(appContext, id);
         return filas > 0;
     }
 

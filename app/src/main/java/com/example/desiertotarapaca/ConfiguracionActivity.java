@@ -74,6 +74,7 @@ public class ConfiguracionActivity extends AppCompatActivity {
             if (rb != null && rb.getTag() != null) {
                 int minutos = Integer.parseInt(rb.getTag().toString());
                 prefs.edit().putInt(KEY_ANTICIPACION_MIN, minutos).apply();
+                AvisosTareas.reprogramarTodas(this);
             }
         });
     }
@@ -121,12 +122,14 @@ public class ConfiguracionActivity extends AppCompatActivity {
         prefs.edit().putBoolean(KEY_SEGUNDO_PLANO, true).apply();
         mostrarSwitch(true);
         habilitarAnticipacion(true);
+        AvisosTareas.reprogramarTodas(this);
     }
 
     private void desactivarSegundoPlano() {
         prefs.edit().putBoolean(KEY_SEGUNDO_PLANO, false).apply();
         mostrarSwitch(false);
         habilitarAnticipacion(false);
+        AvisosTareas.cancelarTodas(this);
     }
 
     private void aplicarColoresSwitch() {
