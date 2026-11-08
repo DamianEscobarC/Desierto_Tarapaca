@@ -28,6 +28,11 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getWindow().setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                android.view.WindowManager.LayoutParams.FLAG_SECURE
+        );
+
         sharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
         if (sharedPreferences.getBoolean(KEY_RECORDAR, false)) {
