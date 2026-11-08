@@ -28,6 +28,11 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getWindow().setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                android.view.WindowManager.LayoutParams.FLAG_SECURE
+        );
+
         sharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
         if (sharedPreferences.getBoolean(KEY_RECORDAR, false)) {
@@ -53,9 +58,10 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> autenticarUsuario());
     }
 
+
     private void autenticarUsuario() {
         String correo = etEmailLogin.getText().toString().trim();
-        String password = etPasswordLogin.getText().toString().trim();
+        String password = etPasswordLogin.getText().toString();
 
         if (correo.isEmpty()) {
             etEmailLogin.setError("Ingresa tu correo");
@@ -63,30 +69,43 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        if (password.isEmpty()) {
+        if (password.trim().isEmpty()) {
             etPasswordLogin.setError("Ingresa tu contraseña");
             etPasswordLogin.requestFocus();
             return;
         }
 
-        boolean credencialesValidas = dbHelper.validarLogin(correo, password);
+        boolean recordarSesion = cbRecordarme.isChecked();
 
-        if (credencialesValidas) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            if (cbRecordarme.isChecked()) {
-                editor.putBoolean(KEY_RECORDAR, true);
-                editor.putString(KEY_CORREO, correo);
-            } else {
-                editor.clear();
-            }
-            editor.apply();
+        btnLogin.setEnabled(false);
 
-            Toast.makeText(this, "Bienvenido a terreno", Toast.LENGTH_SHORT).show();
-            irAlMain();
-        } else {
-            Toast.makeText(this, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show();
-        }
+        new Thread(() -> {
+            boolean credencialesValidas = dbHelper.validarLogin(correo, password);
+
+            runOnUiThread(() -> {
+                btnLogin.setEnabled(true);
+
+                if (credencialesValidas) {
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+
+                    if (recordarSesion) {
+                        editor.putBoolean(KEY_RECORDAR, true);
+                        editor.putString(KEY_CORREO, correo);
+                    } else {
+                        editor.clear();
+                    }
+
+                    editor.apply();
+
+                    Toast.makeText(this, "Bienvenido a terreno", Toast.LENGTH_SHORT).show();
+                    irAlMain();
+                } else {
+                    Toast.makeText(this, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).start();
     }
+
 
     private void irAlMain() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);

@@ -157,19 +157,75 @@ public class DbHelper extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(COL_USER_NOMBRE, nombre.trim());
         cv.put(COL_USER_CORREO, correo.toLowerCase().trim());
-        cv.put(COL_USER_PASSWORD, password);
+        cv.put(COL_USER_PASSWORD, PasswordUtils.generarHash(password));
         long resultado = db.insert(TABLA_USUARIOS, null, cv);
         return resultado != -1;
     }
 
+
     public boolean validarLogin(String correo, String password) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLA_USUARIOS + " WHERE " + COL_USER_CORREO + " = ? AND " + COL_USER_PASSWORD + " = ?",
-                new String[]{correo.toLowerCase().trim(), password});
-        boolean valido = (cursor.getCount() > 0);
-        cursor.close();
-        return valido;
+        if (correo == null || password == null) {
+            return false;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        try (Cursor cursor = db.query(
+                TABLA_USUARIOS,
+                new String[]{COL_USER_PASSWORD},
+                COL_USER_CORREO + " = ?",
+                new String[]{correo.toLowerCase(java.util.Locale.ROOT).trim()},
+                null, null, null
+        )) {
+            if (!cursor.moveToFirst()) {
+                return false;
+            }
+
+            String passwordGuardada = cursor.getString(0);
+
+            if (passwordGuardada == null) {
+                return false;
+            }
+
+
+            if (passwordGuardada.startsWith("pbkdf2_sha1:")) {
+                return PasswordUtils.verificarPassword(
+                        password, passwordGuardada
+                );
+            }
+
+
+            if (passwordGuardada.equals(password)) {
+                String hashNuevo = PasswordUtils.generarHash(password);
+
+                ContentValues valores = new ContentValues();
+                valores.put(COL_USER_PASSWORD, hashNuevo);
+
+                db.update(
+                        TABLA_USUARIOS,
+                        valores,
+                        COL_USER_CORREO + " = ? AND " + COL_USER_PASSWORD + " = ?",
+                        new String[]{
+                                correo.toLowerCase(java.util.Locale.ROOT).trim(),
+                                passwordGuardada
+                        }
+                );
+
+                return true;
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            android.util.Log.e(
+                    "DbHelper",
+                    "Error al validar inicio de sesión",
+                    e
+            );
+            return false;
+        }
     }
+
 
     public long insertarServicio(String ot, String cliente, String tipo, String desc, String fecha, boolean firmado) {
         SQLiteDatabase db = this.getWritableDatabase();
