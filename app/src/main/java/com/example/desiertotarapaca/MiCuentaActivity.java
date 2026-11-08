@@ -1,12 +1,14 @@
 package com.example.desiertotarapaca;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
@@ -15,7 +17,7 @@ public class MiCuentaActivity extends AppCompatActivity {
     private TextView btnVolverCuenta;
     private TextView tvAvatarCuenta, tvNombreCuenta, tvCargoSubtitulo;
     private EditText etCuentaEmail, etCuentaCargo, etCuentaTelefono, etCuentaDireccion;
-    private AppCompatButton btnGuardarCuenta;
+    private AppCompatButton btnGuardarCuenta, btnCerrarSesion;
 
     private DbHelper dbHelper;
     private String correoUsuarioActivo = "";
@@ -37,6 +39,7 @@ public class MiCuentaActivity extends AppCompatActivity {
         etCuentaTelefono = findViewById(R.id.etCuentaTelefono);
         etCuentaDireccion = findViewById(R.id.etCuentaDireccion);
         btnGuardarCuenta = findViewById(R.id.btnGuardarCuenta);
+        btnCerrarSesion = findViewById(R.id.btnCerrarSesion);
 
         btnVolverCuenta.setOnClickListener(v -> finish());
 
@@ -48,6 +51,7 @@ public class MiCuentaActivity extends AppCompatActivity {
         }
 
         btnGuardarCuenta.setOnClickListener(v -> guardarPerfil());
+        btnCerrarSesion.setOnClickListener(v -> confirmarCerrarSesion());
     }
 
     private void cargarPerfil() {
@@ -99,6 +103,25 @@ public class MiCuentaActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Error al guardar cambios", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void confirmarCerrarSesion() {
+        new AlertDialog.Builder(this)
+                .setTitle("Cerrar Sesión")
+                .setMessage("¿Estás seguro de que deseas salir de tu cuenta?")
+                .setPositiveButton("Sí, salir", (dialog, which) -> {
+                    SharedPreferences sharedPreferences = getSharedPreferences("SesionUsuario", Context.MODE_PRIVATE);
+                    sharedPreferences.edit().clear().apply();
+
+                    Toast.makeText(this, "Sesión finalizada", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent(MiCuentaActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
     private String generarIniciales(String nombre) {
