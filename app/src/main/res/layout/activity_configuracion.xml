@@ -35,81 +35,175 @@
             android:textStyle="bold" />
     </RelativeLayout>
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_white_card"
-        android:elevation="2dp"
-        android:orientation="vertical"
-        android:padding="20dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SESIÓN ACTIVA"
-            android:textColor="@color/text_muted"
-            android:textSize="11sp"
-            android:textStyle="bold" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <RelativeLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_avatar_circle">
-
-                <TextView
-                    android:id="@+id/tvAvatarConfig"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-            </RelativeLayout>
+            android:orientation="vertical">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:orientation="vertical">
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_white_card"
+                android:elevation="2dp"
+                android:orientation="vertical"
+                android:padding="20dp">
 
                 <TextView
-                    android:id="@+id/tvNombreConfig"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="SISTEMA"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Permitir funcionamiento en segundo plano"
+                        android:textColor="@color/text_main"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/swSegundoPlano"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Necesario para que los avisos de tareas lleguen aunque la app esté cerrada. Android te pedirá permiso para mostrar notificaciones y para programar alarmas exactas."
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_white_card"
+                android:elevation="2dp"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AVISOS DE TAREAS"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Anticipación del aviso"
                     android:textColor="@color/text_main"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvCorreoConfig"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="4dp"
+                    android:text="¿Con cuánto tiempo antes de la hora de la tarea quieres recibir el aviso? Se aplica a todas las tareas."
                     android:textColor="@color/text_muted"
                     android:textSize="12sp" />
+
+                <RadioGroup
+                    android:id="@+id/rgAnticipacion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical">
+
+                    <RadioButton
+                        android:id="@+id/rbAnt15"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:buttonTint="@color/green_tile"
+                        android:tag="15"
+                        android:text="15 minutos antes"
+                        android:textColor="@color/text_main"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/rbAnt30"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:buttonTint="@color/green_tile"
+                        android:tag="30"
+                        android:text="30 minutos antes"
+                        android:textColor="@color/text_main"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/rbAnt60"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:buttonTint="@color/green_tile"
+                        android:tag="60"
+                        android:text="1 hora antes"
+                        android:textColor="@color/text_main"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/rbAnt180"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:buttonTint="@color/green_tile"
+                        android:tag="180"
+                        android:text="3 horas antes"
+                        android:textColor="@color/text_main"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/rbAnt1440"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:buttonTint="@color/green_tile"
+                        android:tag="1440"
+                        android:text="1 día antes"
+                        android:textColor="@color/text_main"
+                        android:textSize="14sp" />
+                </RadioGroup>
+
+                <TextView
+                    android:id="@+id/tvAvisoAnticipacion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Activa el funcionamiento en segundo plano para poder elegir la anticipación."
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:textStyle="italic"
+                    android:visibility="gone" />
             </LinearLayout>
+
         </LinearLayout>
-
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="Desierto Tarapacá v1.0.0 · Modo Terreno"
-        android:textColor="@color/text_muted"
-        android:textSize="11sp" />
+    </ScrollView>
 
 </LinearLayout>
