@@ -360,6 +360,14 @@ public class DbHelper extends SQLiteOpenHelper {
         return filas > 0;
     }
 
+    public Cursor obtenerTareasPendientesDesde(String fechaIso) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT " + COL_TAREA_ID + ", " + COL_TAREA_CLIENTE + ", " + COL_TAREA_TIPO + ", "
+                + COL_TAREA_HORA + ", " + COL_TAREA_FECHA + " FROM " + TABLA_TAREAS
+                + " WHERE (" + COL_TAREA_ESTADO + " IS NULL OR LOWER(" + COL_TAREA_ESTADO + ") <> 'completada')"
+                + " AND " + COL_TAREA_FECHA + " >= ?", new String[]{fechaIso});
+    }
+
     public boolean insertarProductoQuimico(String nombre, String tipo, double stock, String unidad) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
