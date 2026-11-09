@@ -18,6 +18,11 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getWindow().setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                android.view.WindowManager.LayoutParams.FLAG_SECURE
+        );
         setContentView(R.layout.activity_register);
 
         dbHelper = new DbHelper(this);
@@ -33,10 +38,11 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister.setOnClickListener(v -> registrarUsuario());
     }
 
+
     private void registrarUsuario() {
         String nombre = etNombreRegister.getText().toString().trim();
         String correo = etEmailRegister.getText().toString().trim();
-        String password = etPasswordRegister.getText().toString().trim();
+        String password = etPasswordRegister.getText().toString();
 
         if (nombre.isEmpty()) {
             etNombreRegister.setError("Ingresa tu nombre y apellido");
@@ -56,26 +62,49 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (password.length() < 6) {
+        if (password.trim().length() < 6) {
             etPasswordRegister.setError("La contraseña debe tener al menos 6 caracteres");
             etPasswordRegister.requestFocus();
             return;
         }
 
-        if (dbHelper.existeCorreo(correo)) {
-            etEmailRegister.setError("Este correo ya se encuentra registrado");
-            etEmailRegister.requestFocus();
-            Toast.makeText(this, "El correo ya está en uso", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        btnRegister.setEnabled(false);
 
-        boolean registrado = dbHelper.registrarUsuario(nombre, correo, password);
+        new Thread(() -> {
+            try {
+                boolean existe = dbHelper.existeCorreo(correo);
 
-        if (registrado) {
-            Toast.makeText(this, "Cuenta creada exitosamente", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            Toast.makeText(this, "Error al crear la cuenta. Intenta de nuevo.", Toast.LENGTH_SHORT).show();
-        }
+                if (existe) {
+                    runOnUiThread(() -> {
+                        btnRegister.setEnabled(true);
+                        etEmailRegister.setError("Este correo ya se encuentra registrado");
+                        etEmailRegister.requestFocus();
+                        Toast.makeText(this, "El correo ya está en uso", Toast.LENGTH_SHORT).show();
+                    });
+                    return;
+                }
+
+                boolean registrado = dbHelper.registrarUsuario(nombre, correo, password);
+
+                runOnUiThread(() -> {
+                    btnRegister.setEnabled(true);
+
+                    if (registrado) {
+                        Toast.makeText(this, "Cuenta creada exitosamente", Toast.LENGTH_SHORT).show();
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Error al crear la cuenta. Intenta de nuevo.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } catch (Exception e) {
+                android.util.Log.e("RegisterActivity", "Error al registrar usuario", e);
+
+                runOnUiThread(() -> {
+                    btnRegister.setEnabled(true);
+                    Toast.makeText(this, "No se pudo crear la cuenta", Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
     }
 }

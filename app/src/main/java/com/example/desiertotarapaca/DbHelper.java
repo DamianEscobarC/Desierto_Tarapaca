@@ -13,6 +13,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DesiertoTarapaca.db";
     private static final int DATABASE_VERSION = 7;
+    private final Context appContext;
 
     public static final String TABLA_SERVICIOS = "servicios";
     public static final String COL_ID = "id";
@@ -69,6 +70,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.appContext = context.getApplicationContext();
     }
 
     @Override
@@ -157,19 +159,75 @@ public class DbHelper extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(COL_USER_NOMBRE, nombre.trim());
         cv.put(COL_USER_CORREO, correo.toLowerCase().trim());
-        cv.put(COL_USER_PASSWORD, password);
+        cv.put(COL_USER_PASSWORD, PasswordUtils.generarHash(password));
         long resultado = db.insert(TABLA_USUARIOS, null, cv);
         return resultado != -1;
     }
 
+
     public boolean validarLogin(String correo, String password) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLA_USUARIOS + " WHERE " + COL_USER_CORREO + " = ? AND " + COL_USER_PASSWORD + " = ?",
-                new String[]{correo.toLowerCase().trim(), password});
-        boolean valido = (cursor.getCount() > 0);
-        cursor.close();
-        return valido;
+        if (correo == null || password == null) {
+            return false;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        try (Cursor cursor = db.query(
+                TABLA_USUARIOS,
+                new String[]{COL_USER_PASSWORD},
+                COL_USER_CORREO + " = ?",
+                new String[]{correo.toLowerCase(java.util.Locale.ROOT).trim()},
+                null, null, null
+        )) {
+            if (!cursor.moveToFirst()) {
+                return false;
+            }
+
+            String passwordGuardada = cursor.getString(0);
+
+            if (passwordGuardada == null) {
+                return false;
+            }
+
+
+            if (passwordGuardada.startsWith("pbkdf2_sha1:")) {
+                return PasswordUtils.verificarPassword(
+                        password, passwordGuardada
+                );
+            }
+
+
+            if (passwordGuardada.equals(password)) {
+                String hashNuevo = PasswordUtils.generarHash(password);
+
+                ContentValues valores = new ContentValues();
+                valores.put(COL_USER_PASSWORD, hashNuevo);
+
+                db.update(
+                        TABLA_USUARIOS,
+                        valores,
+                        COL_USER_CORREO + " = ? AND " + COL_USER_PASSWORD + " = ?",
+                        new String[]{
+                                correo.toLowerCase(java.util.Locale.ROOT).trim(),
+                                passwordGuardada
+                        }
+                );
+
+                return true;
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            android.util.Log.e(
+                    "DbHelper",
+                    "Error al validar inicio de sesión",
+                    e
+            );
+            return false;
+        }
     }
+
 
     public long insertarServicio(String ot, String cliente, String tipo, String desc, String fecha, boolean firmado) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -253,6 +311,9 @@ public class DbHelper extends SQLiteOpenHelper {
         cv.put(COL_TAREA_FECHA, fecha);
         cv.put(COL_TAREA_ESTADO, "pendiente");
         long resultado = db.insert(TABLA_TAREAS, null, cv);
+        if (resultado != -1) {
+            AvisosTareas.programar(appContext, resultado, cliente, tipo, hora, fecha);
+        }
         return resultado != -1;
     }
 
@@ -287,6 +348,13 @@ public class DbHelper extends SQLiteOpenHelper {
         cv.put(COL_TAREA_FECHA, fecha);
         cv.put(COL_TAREA_ESTADO, estado);
         int filas = db.update(TABLA_TAREAS, cv, COL_TAREA_ID + " = ?", new String[]{String.valueOf(id)});
+        if (filas > 0) {
+            if ("Completada".equalsIgnoreCase(estado)) {
+                AvisosTareas.cancelar(appContext, id);
+            } else {
+                AvisosTareas.programar(appContext, id, cliente, tipo, hora, fecha);
+            }
+        }
         return filas > 0;
     }
 
@@ -295,13 +363,23 @@ public class DbHelper extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(COL_TAREA_ESTADO, "Completada");
         int filas = db.update(TABLA_TAREAS, cv, COL_TAREA_ID + " = ?", new String[]{String.valueOf(idTarea)});
+        if (filas > 0) AvisosTareas.cancelar(appContext, idTarea);
         return filas > 0;
     }
 
     public boolean eliminarTarea(long id) {
         SQLiteDatabase db = this.getWritableDatabase();
         int filas = db.delete(TABLA_TAREAS, COL_TAREA_ID + " = ?", new String[]{String.valueOf(id)});
+        if (filas > 0) AvisosTareas.cancelar(appContext, id);
         return filas > 0;
+    }
+
+    public Cursor obtenerTareasPendientesDesde(String fechaIso) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT " + COL_TAREA_ID + ", " + COL_TAREA_CLIENTE + ", " + COL_TAREA_TIPO + ", "
+                + COL_TAREA_HORA + ", " + COL_TAREA_FECHA + " FROM " + TABLA_TAREAS
+                + " WHERE (" + COL_TAREA_ESTADO + " IS NULL OR LOWER(" + COL_TAREA_ESTADO + ") <> 'completada')"
+                + " AND " + COL_TAREA_FECHA + " >= ?", new String[]{fechaIso});
     }
 
     public boolean insertarProductoQuimico(String nombre, String tipo, double stock, String unidad) {
