@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RegistrarServicioActivity extends AppCompatActivity {
 
@@ -257,6 +259,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
                 fila.setPadding(0, 4, 0, 4);
 
                 CheckBox cb = new CheckBox(this);
+                cb.setTag(codigo);
                 cb.setTextSize(13f);
                 cb.setText("🚽 Baño " + codigo + " (" + estado + ")");
                 cb.setTextColor(ContextCompat.getColor(this, R.color.text_main));
@@ -518,6 +521,44 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         }
     }
 
+    private void restaurarBanosDelServicio(List<String> codigos) {
+        banosSeleccionados.clear();
+
+        for (int i = 0; i < contenedorChecksBanos.getChildCount(); i++) {
+            View fila = contenedorChecksBanos.getChildAt(i);
+
+            if (!(fila instanceof LinearLayout)) continue;
+
+            LinearLayout contenedorFila = (LinearLayout) fila;
+
+            for (int j = 0; j < contenedorFila.getChildCount(); j++) {
+                View elemento = contenedorFila.getChildAt(j);
+
+                if (elemento instanceof CheckBox) {
+                    CheckBox checkBox = (CheckBox) elemento;
+                    Object etiqueta = checkBox.getTag();
+
+                    if (etiqueta instanceof String) {
+                        String codigo = (String) etiqueta;
+                        checkBox.setChecked(codigos.contains(codigo));
+                    }
+                }
+            }
+        }
+
+        for (String codigo : codigos) {
+            if (!banosSeleccionados.contains(codigo)) {
+                banosSeleccionados.add(codigo);
+
+                TextView aviso = new TextView(this);
+                aviso.setText("🚽 Baño " + codigo + " · Asignado originalmente");
+                aviso.setTextColor(ContextCompat.getColor(this, R.color.text_main));
+                aviso.setTextSize(13f);
+                contenedorChecksBanos.addView(aviso);
+            }
+        }
+    }
+
     private void cargarDatosServicioParaEditar(long id) {
         Cursor cursor = dbHelper.obtenerServicioPorId(id);
         if (cursor != null && cursor.moveToFirst()) {
@@ -541,8 +582,21 @@ public class RegistrarServicioActivity extends AppCompatActivity {
                 }
                 cargarBanosAsignadosPreviamente(clienteSeleccionadoNombre);
             }
-            if (idxTipo != -1) seleccionarTipoDesdeTexto(cursor.getString(idxTipo));
-            if (idxDesc != -1) etObservaciones.setText(cursor.getString(idxDesc));
+            if (idxTipo != -1) {
+                seleccionarTipoDesdeTexto(cursor.getString(idxTipo));
+            }
+
+            if (idxDesc != -1) {
+                String descripcionGuardada = cursor.getString(idxDesc);
+
+                etObservaciones.setText(limpiarDescripcionServicio(descripcionGuardada));
+
+                if (TIPO_ARRIENDO.equals(tipoSeleccionado)) {
+                    restaurarBanosDelServicio(
+                            obtenerBanosDesdeDescripcion(descripcionGuardada)
+                    );
+                }
+            }
 
             int idxPrecio = cursor.getColumnIndex(DbHelper.COL_PRECIO);
             int idxMetros = cursor.getColumnIndex(DbHelper.COL_METROS_CUBICOS);
@@ -562,6 +616,57 @@ public class RegistrarServicioActivity extends AppCompatActivity {
 
             cursor.close();
         }
+    }
+
+    private String limpiarDescripcionServicio(String descripcion) {
+        if (descripcion == null) return "";
+
+        String resultado = descripcion;
+
+        Pattern patronBanos = Pattern.compile("^Baños: .*?\\. Unidades: \\d+\\. ");
+        Pattern patronGps = Pattern.compile("^GPS: -?\\d+(?:\\.\\d+)?, -?\\d+(?:\\.\\d+)?\\. ");
+
+        boolean cambio;
+
+        do {
+            cambio = false;
+
+            Matcher matcherBanos = patronBanos.matcher(resultado);
+            if (matcherBanos.find()) {
+                resultado = resultado.substring(matcherBanos.end());
+                cambio = true;
+            }
+
+            Matcher matcherGps = patronGps.matcher(resultado);
+            if (matcherGps.find()) {
+                resultado = resultado.substring(matcherGps.end());
+                cambio = true;
+            }
+        } while (cambio);
+
+        return resultado.trim();
+    }
+
+    private List<String> obtenerBanosDesdeDescripcion(String descripcion) {
+        List<String> codigos = new ArrayList<>();
+
+        if (descripcion == null) return codigos;
+
+        Matcher matcher = Pattern.compile("Baños: (.*?)\\. Unidades: \\d+\\.").matcher(descripcion);
+
+        if (matcher.find()) {
+            String[] partes = matcher.group(1).split(",");
+
+            for (String parte : partes) {
+                String codigo = parte.trim();
+
+                if (!codigo.isEmpty() && !codigos.contains(codigo)) {
+                    codigos.add(codigo);
+                }
+            }
+        }
+
+        return codigos;
     }
 
     private double leerDecimal(String texto) {
