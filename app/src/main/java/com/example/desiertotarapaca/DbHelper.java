@@ -12,7 +12,7 @@ import java.util.List;
 public class DbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DesiertoTarapaca.db";
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 8;
     private final Context appContext;
 
     public static final String TABLA_SERVICIOS = "servicios";
@@ -24,6 +24,8 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String COL_FECHA = "fecha_hora";
     public static final String COL_FIRMADO = "firmado";
     public static final String COL_SINCRONIZADO = "sincronizado";
+    public static final String COL_PRECIO = "precio";
+    public static final String COL_METROS_CUBICOS = "metros_cubicos";
 
     public static final String TABLA_USUARIOS = "usuarios";
     public static final String COL_USER_ID = "id_usuario";
@@ -83,7 +85,9 @@ public class DbHelper extends SQLiteOpenHelper {
                 COL_DESCRIPCION + " TEXT, " +
                 COL_FECHA + " TEXT, " +
                 COL_FIRMADO + " INTEGER, " +
-                COL_SINCRONIZADO + " INTEGER DEFAULT 0)";
+                COL_SINCRONIZADO + " INTEGER DEFAULT 0, " +
+                COL_PRECIO + " INTEGER DEFAULT 0, " +
+                COL_METROS_CUBICOS + " REAL DEFAULT 0)";
         db.execSQL(crearTablaServicios);
 
         String crearTablaUsuarios = "CREATE TABLE " + TABLA_USUARIOS + " (" +
@@ -251,6 +255,37 @@ public class DbHelper extends SQLiteOpenHelper {
         cv.put(COL_DESCRIPCION, desc);
         cv.put(COL_FIRMADO, firmado ? 1 : 0);
         cv.put(COL_SINCRONIZADO, 0);
+        return db.update(TABLA_SERVICIOS, cv, COL_ID + "=?", new String[]{String.valueOf(id)});
+    }
+
+    public long insertarServicio(String ot, String cliente, String tipo, String desc, String fecha,
+                                 boolean firmado, long precio, double metrosCubicos) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_OT, ot);
+        cv.put(COL_CLIENTE, cliente);
+        cv.put(COL_TIPO, tipo);
+        cv.put(COL_DESCRIPCION, desc);
+        cv.put(COL_FECHA, fecha);
+        cv.put(COL_FIRMADO, firmado ? 1 : 0);
+        cv.put(COL_SINCRONIZADO, 0);
+        cv.put(COL_PRECIO, precio);
+        cv.put(COL_METROS_CUBICOS, metrosCubicos);
+        return db.insert(TABLA_SERVICIOS, null, cv);
+    }
+
+    public int actualizarServicio(long id, String ot, String cliente, String tipo, String desc,
+                                  boolean firmado, long precio, double metrosCubicos) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_OT, ot);
+        cv.put(COL_CLIENTE, cliente);
+        cv.put(COL_TIPO, tipo);
+        cv.put(COL_DESCRIPCION, desc);
+        cv.put(COL_FIRMADO, firmado ? 1 : 0);
+        cv.put(COL_SINCRONIZADO, 0);
+        cv.put(COL_PRECIO, precio);
+        cv.put(COL_METROS_CUBICOS, metrosCubicos);
         return db.update(TABLA_SERVICIOS, cv, COL_ID + "=?", new String[]{String.valueOf(id)});
     }
 
