@@ -34,7 +34,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
     private AppCompatButton btnAgregarBanosServicio;
     private LinearLayout contenedorChecksBanos;
     private TextView tvAvisoSinBanos;
-    private EditText etTipoTrabajo, etObservaciones;
+    private EditText etObservaciones;
     private AppCompatButton btnCapturarGps, btnGuardarServicio;
 
     private DbHelper dbHelper;
@@ -46,6 +46,14 @@ public class RegistrarServicioActivity extends AppCompatActivity {
     private double clienteLongitud = 0.0;
 
     private final List<String> banosSeleccionados = new ArrayList<>();
+
+    private static final String TIPO_LIMPIEZA = "Limpieza de fosa";
+    private static final String TIPO_ENVARILLADO = "Envarillado";
+    private static final String TIPO_ARRIENDO = "Arriendo de baños";
+
+    private TextView opTipoLimpieza, opTipoEnvarillado, opTipoArriendo;
+    private View seccionBanos;
+    private String tipoSeleccionado = "";
 
     private final ActivityResultLauncher<Intent> selectorMapaLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -77,11 +85,14 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         btnAgregarBanosServicio = findViewById(R.id.btnAgregarBanosServicio);
         contenedorChecksBanos = findViewById(R.id.contenedorChecksBanos);
         tvAvisoSinBanos = findViewById(R.id.tvAvisoSinBanos);
-        etTipoTrabajo = findViewById(R.id.etTipoTrabajo);
         tvCoordenadasGps = findViewById(R.id.tvCoordenadasGps);
         btnCapturarGps = findViewById(R.id.btnCapturarGps);
         etObservaciones = findViewById(R.id.etObservaciones);
         btnGuardarServicio = findViewById(R.id.btnGuardarServicio);
+        opTipoLimpieza = findViewById(R.id.opTipoLimpieza);
+        opTipoEnvarillado = findViewById(R.id.opTipoEnvarillado);
+        opTipoArriendo = findViewById(R.id.opTipoArriendo);
+        seccionBanos = findViewById(R.id.seccionBanos);
 
         btnVolverRegistro.setOnClickListener(v -> finish());
         btnSeleccionarClienteServicio.setOnClickListener(v -> mostrarBottomSheetClientes());
@@ -98,6 +109,11 @@ public class RegistrarServicioActivity extends AppCompatActivity {
             Intent intent = new Intent(this, SeleccionarUbicacionActivity.class);
             selectorMapaLauncher.launch(intent);
         });
+
+        opTipoLimpieza.setOnClickListener(v -> seleccionarTipo(TIPO_LIMPIEZA));
+        opTipoEnvarillado.setOnClickListener(v -> seleccionarTipo(TIPO_ENVARILLADO));
+        opTipoArriendo.setOnClickListener(v -> seleccionarTipo(TIPO_ARRIENDO));
+        seleccionarTipo("");
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("ID_SERVICIO")) {
@@ -449,6 +465,48 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         }
     }
 
+    private void seleccionarTipo(String tipo) {
+        boolean cambioDeTipo = !tipo.equals(tipoSeleccionado);
+        tipoSeleccionado = tipo;
+
+        estilizarOpcion(opTipoLimpieza, tipo.equals(TIPO_LIMPIEZA));
+        estilizarOpcion(opTipoEnvarillado, tipo.equals(TIPO_ENVARILLADO));
+        estilizarOpcion(opTipoArriendo, tipo.equals(TIPO_ARRIENDO));
+
+        boolean esArriendo = tipo.equals(TIPO_ARRIENDO);
+        seccionBanos.setVisibility(esArriendo ? View.VISIBLE : View.GONE);
+
+        if (!cambioDeTipo) return;
+
+        if (esArriendo) {
+            if (!clienteSeleccionadoNombre.isEmpty()) {
+                cargarBanosAsignadosPreviamente(clienteSeleccionadoNombre);
+            }
+        } else {
+            banosSeleccionados.clear();
+            contenedorChecksBanos.removeAllViews();
+        }
+    }
+
+    private void estilizarOpcion(TextView opcion, boolean seleccionada) {
+        opcion.setBackgroundResource(seleccionada ? R.drawable.bg_green_tile : R.drawable.bg_input_field);
+        opcion.setTextColor(ContextCompat.getColor(this,
+                seleccionada ? R.color.text_light : R.color.text_main));
+    }
+
+    private void seleccionarTipoDesdeTexto(String texto) {
+        String t = texto == null ? "" : texto.toLowerCase(Locale.ROOT);
+        if (t.contains("limpieza") || t.contains("fosa")) {
+            seleccionarTipo(TIPO_LIMPIEZA);
+        } else if (t.contains("envarill")) {
+            seleccionarTipo(TIPO_ENVARILLADO);
+        } else if (t.contains("arriendo") || t.contains("baño") || t.contains("bano")) {
+            seleccionarTipo(TIPO_ARRIENDO);
+        } else {
+            seleccionarTipo("");
+        }
+    }
+
     private void cargarDatosServicioParaEditar(long id) {
         Cursor cursor = dbHelper.obtenerServicioPorId(id);
         if (cursor != null && cursor.moveToFirst()) {
@@ -472,7 +530,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
                 }
                 cargarBanosAsignadosPreviamente(clienteSeleccionadoNombre);
             }
-            if (idxTipo != -1) etTipoTrabajo.setText(cursor.getString(idxTipo));
+            if (idxTipo != -1) seleccionarTipoDesdeTexto(cursor.getString(idxTipo));
             if (idxDesc != -1) etObservaciones.setText(cursor.getString(idxDesc));
 
             cursor.close();
@@ -485,24 +543,26 @@ public class RegistrarServicioActivity extends AppCompatActivity {
             return;
         }
 
-        if (banosSeleccionados.isEmpty()) {
+        if (tipoSeleccionado.isEmpty()) {
+            Toast.makeText(this, "Selecciona el tipo de servicio", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        boolean esArriendo = tipoSeleccionado.equals(TIPO_ARRIENDO);
+        if (esArriendo && banosSeleccionados.isEmpty()) {
             Toast.makeText(this, "Debes asignar al menos un baño disponible para este servicio", Toast.LENGTH_LONG).show();
             return;
         }
 
-        String tipo = etTipoTrabajo.getText().toString().trim();
+        String tipo = tipoSeleccionado;
         String observaciones = etObservaciones.getText().toString().trim();
-
-        if (tipo.isEmpty()) {
-            etTipoTrabajo.setError("Ingresa el tipo de trabajo");
-            etTipoTrabajo.requestFocus();
-            return;
-        }
 
         StringBuilder descripcionCompleta = new StringBuilder();
 
-        descripcionCompleta.append("Baños: ").append(TextUtils.join(", ", banosSeleccionados)).append(". ");
-        descripcionCompleta.append("Unidades: ").append(banosSeleccionados.size()).append(". ");
+        if (esArriendo) {
+            descripcionCompleta.append("Baños: ").append(TextUtils.join(", ", banosSeleccionados)).append(". ");
+            descripcionCompleta.append("Unidades: ").append(banosSeleccionados.size()).append(". ");
+        }
 
         if (clienteLatitud != 0.0 || clienteLongitud != 0.0) {
             descripcionCompleta.append(String.format(Locale.US, "GPS: %.4f, %.4f. ", clienteLatitud, clienteLongitud));
