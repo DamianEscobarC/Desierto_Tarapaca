@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.text.NumberFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -99,13 +102,16 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         seccionMetros = findViewById(R.id.seccionMetros);
         etPrecio = findViewById(R.id.etPrecio);
         etMetrosCubicos = findViewById(R.id.etMetrosCubicos);
+        configurarFormatoPrecio();
 
         btnVolverRegistro.setOnClickListener(v -> finish());
         btnSeleccionarClienteServicio.setOnClickListener(v -> mostrarBottomSheetClientes());
 
         btnAgregarBanosServicio.setOnClickListener(v -> {
             if (clienteSeleccionadoNombre.isEmpty()) {
-                Toast.makeText(this, "Primero selecciona un cliente del directorio", Toast.LENGTH_SHORT).show();
+                tvClienteServicioTexto.setError("Selecciona un cliente");
+                Toast.makeText(this, "Debes seleccionar un cliente del directorio", Toast.LENGTH_LONG).show();
+                btnSeleccionarClienteServicio.requestFocus();
                 return;
             }
             mostrarDialogoSeleccionarBanosDisponibles();
@@ -482,6 +488,9 @@ public class RegistrarServicioActivity extends AppCompatActivity {
 
     private void refrescarVistaBanosSeleccionados() {
         contenedorChecksBanos.removeAllViews();
+        tvAvisoSinBanos.setTextColor(
+                ContextCompat.getColor(this, R.color.text_muted)
+        );
         if (banosSeleccionados.isEmpty()) {
             tvAvisoSinBanos.setVisibility(View.VISIBLE);
             tvAvisoSinBanos.setText("No hay baños seleccionados para este servicio.");
@@ -704,6 +713,48 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         }
     }
 
+    private void configurarFormatoPrecio() {
+        etPrecio.addTextChangedListener(new TextWatcher() {
+            private boolean actualizando = false;
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (actualizando) return;
+
+                String digitos = s.toString().replaceAll("[^0-9]", "");
+
+                if (digitos.isEmpty()) return;
+
+                try {
+                    long valor = Long.parseLong(digitos);
+
+                    NumberFormat formato = NumberFormat.getIntegerInstance(
+                            new Locale("es", "CL")
+                    );
+
+                    String precioFormateado = formato.format(valor);
+
+                    if (!precioFormateado.equals(s.toString())) {
+                        actualizando = true;
+                        etPrecio.setText(precioFormateado);
+                        etPrecio.setSelection(etPrecio.getText().length());
+                        actualizando = false;
+                    }
+                } catch (NumberFormatException e) {
+                    etPrecio.setError("Precio demasiado grande");
+                }
+            }
+        });
+    }
+
     private long leerEntero(String texto) {
         String soloDigitos = texto.replaceAll("[^0-9]", "");
         if (soloDigitos.isEmpty()) return 0;
@@ -715,6 +766,23 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         }
     }
 
+    private void mostrarConfirmacionGuardado(boolean esActualizacion) {
+        String titulo = esActualizacion
+                ? "Servicio actualizado"
+                : "Servicio registrado";
+
+        String mensaje = esActualizacion
+                ? "Los cambios del servicio se guardaron correctamente en este dispositivo."
+                : "El servicio se registró correctamente y quedó guardado en este dispositivo.";
+
+        new AlertDialog.Builder(this)
+                .setTitle(titulo)
+                .setMessage(mensaje)
+                .setCancelable(false)
+                .setPositiveButton("Aceptar", (dialog, which) -> finish())
+                .show();
+    }
+
     private void guardarOActualizar() {
         if (clienteSeleccionadoNombre.isEmpty()) {
             Toast.makeText(this, "Debes seleccionar un cliente registrado del Directorio", Toast.LENGTH_LONG).show();
@@ -722,13 +790,19 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         }
 
         if (tipoSeleccionado.isEmpty()) {
-            Toast.makeText(this, "Selecciona el tipo de servicio", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Selecciona Limpieza de fosa, Envarillado o Arriendo de baños", Toast.LENGTH_LONG).show();
+            opTipoLimpieza.requestFocus();
             return;
         }
 
         boolean esArriendo = tipoSeleccionado.equals(TIPO_ARRIENDO);
         if (esArriendo && banosSeleccionados.isEmpty()) {
-            Toast.makeText(this, "Debes asignar al menos un baño disponible para este servicio", Toast.LENGTH_LONG).show();
+            tvAvisoSinBanos.setVisibility(View.VISIBLE);
+            tvAvisoSinBanos.setText("⚠ Debes seleccionar al menos un baño para registrar el arriendo");
+            tvAvisoSinBanos.setTextColor(Color.parseColor("#C62828"));
+
+            Toast.makeText(this, "Selecciona al menos un baño disponible", Toast.LENGTH_LONG).show();
+            btnAgregarBanosServicio.requestFocus();
             return;
         }
 
@@ -736,12 +810,23 @@ public class RegistrarServicioActivity extends AppCompatActivity {
                 ? leerDecimal(etMetrosCubicos.getText().toString()) : 0;
 
         if (tipoSeleccionado.equals(TIPO_LIMPIEZA) && metrosCubicos <= 0) {
-            Toast.makeText(this, "Ingresa los metros cúbicos (debe ser mayor a 0)", Toast.LENGTH_LONG).show();
+            etMetrosCubicos.setError("Ingresa una cantidad mayor a cero");
             etMetrosCubicos.requestFocus();
+
+            Toast.makeText(this, "Debes indicar los metros cúbicos de la limpieza", Toast.LENGTH_LONG).show();
             return;
         }
 
         long precio = leerEntero(etPrecio.getText().toString());
+
+        String precioIngresado = etPrecio.getText().toString().trim();
+
+        if (!precioIngresado.isEmpty() && precio == 0
+                && !precioIngresado.replaceAll("[^0-9]", "").matches("0+")) {
+            etPrecio.setError("Ingresa un precio válido");
+            etPrecio.requestFocus();
+            return;
+        }
 
         String tipo = tipoSeleccionado;
         String observaciones = etObservaciones.getText().toString().trim();
@@ -791,8 +876,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
                     } catch (Exception ignored) {}
                 }
 
-                Toast.makeText(this, "Servicio registrado localmente en SQLite", Toast.LENGTH_SHORT).show();
-                finish();
+                mostrarConfirmacionGuardado(false);
             } else {
                 Toast.makeText(this, "Error al guardar en el dispositivo", Toast.LENGTH_SHORT).show();
             }
@@ -809,8 +893,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
             );
 
             if (filasAfectadas > 0) {
-                Toast.makeText(this, "Registro actualizado correctamente", Toast.LENGTH_SHORT).show();
-                finish();
+                mostrarConfirmacionGuardado(true);
             } else {
                 Toast.makeText(this, "Error al actualizar registro", Toast.LENGTH_SHORT).show();
             }
