@@ -53,15 +53,18 @@
         android:background="#E2E8F0" />
 
     <ScrollView
+        android:id="@+id/scrollBanosDisponibles"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="320dp">
+        android:fillViewport="false"
+        android:scrollbars="vertical">
 
         <LinearLayout
             android:id="@+id/contenedorListaBanosModal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
+
     </ScrollView>
 
     <LinearLayout
