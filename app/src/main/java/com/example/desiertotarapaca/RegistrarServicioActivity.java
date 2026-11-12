@@ -34,7 +34,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
     private AppCompatButton btnAgregarBanosServicio;
     private LinearLayout contenedorChecksBanos;
     private TextView tvAvisoSinBanos;
-    private EditText etObservaciones;
+    private EditText etObservaciones, etPrecio, etMetrosCubicos;
     private AppCompatButton btnCapturarGps, btnGuardarServicio;
 
     private DbHelper dbHelper;
@@ -52,7 +52,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
     private static final String TIPO_ARRIENDO = "Arriendo de baños";
 
     private TextView opTipoLimpieza, opTipoEnvarillado, opTipoArriendo;
-    private View seccionBanos;
+    private View seccionBanos, seccionMetros;
     private String tipoSeleccionado = "";
 
     private final ActivityResultLauncher<Intent> selectorMapaLauncher = registerForActivityResult(
@@ -93,6 +93,9 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         opTipoEnvarillado = findViewById(R.id.opTipoEnvarillado);
         opTipoArriendo = findViewById(R.id.opTipoArriendo);
         seccionBanos = findViewById(R.id.seccionBanos);
+        seccionMetros = findViewById(R.id.seccionMetros);
+        etPrecio = findViewById(R.id.etPrecio);
+        etMetrosCubicos = findViewById(R.id.etMetrosCubicos);
 
         btnVolverRegistro.setOnClickListener(v -> finish());
         btnSeleccionarClienteServicio.setOnClickListener(v -> mostrarBottomSheetClientes());
@@ -476,7 +479,15 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         boolean esArriendo = tipo.equals(TIPO_ARRIENDO);
         seccionBanos.setVisibility(esArriendo ? View.VISIBLE : View.GONE);
 
+        seccionMetros.setVisibility(
+                tipo.equals(TIPO_LIMPIEZA) ? View.VISIBLE : View.GONE
+        );
+
         if (!cambioDeTipo) return;
+
+        if (!tipo.equals(TIPO_LIMPIEZA)) {
+            etMetrosCubicos.setText("");
+        }
 
         if (esArriendo) {
             if (!clienteSeleccionadoNombre.isEmpty()) {
@@ -533,7 +544,42 @@ public class RegistrarServicioActivity extends AppCompatActivity {
             if (idxTipo != -1) seleccionarTipoDesdeTexto(cursor.getString(idxTipo));
             if (idxDesc != -1) etObservaciones.setText(cursor.getString(idxDesc));
 
+            int idxPrecio = cursor.getColumnIndex(DbHelper.COL_PRECIO);
+            int idxMetros = cursor.getColumnIndex(DbHelper.COL_METROS_CUBICOS);
+
+            if (idxPrecio != -1 && cursor.getLong(idxPrecio) > 0) {
+                etPrecio.setText(String.valueOf(cursor.getLong(idxPrecio)));
+            }
+
+            if (idxMetros != -1 && cursor.getDouble(idxMetros) > 0) {
+                double m3 = cursor.getDouble(idxMetros);
+                etMetrosCubicos.setText(
+                        m3 == Math.floor(m3)
+                                ? String.valueOf((long) m3)
+                                : String.valueOf(m3)
+                );
+            }
+
             cursor.close();
+        }
+    }
+
+    private double leerDecimal(String texto) {
+        try {
+            return Double.parseDouble(texto.trim().replace(',', '.'));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private long leerEntero(String texto) {
+        String soloDigitos = texto.replaceAll("[^0-9]", "");
+        if (soloDigitos.isEmpty()) return 0;
+
+        try {
+            return Long.parseLong(soloDigitos);
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 
@@ -553,6 +599,17 @@ public class RegistrarServicioActivity extends AppCompatActivity {
             Toast.makeText(this, "Debes asignar al menos un baño disponible para este servicio", Toast.LENGTH_LONG).show();
             return;
         }
+
+        double metrosCubicos = tipoSeleccionado.equals(TIPO_LIMPIEZA)
+                ? leerDecimal(etMetrosCubicos.getText().toString()) : 0;
+
+        if (tipoSeleccionado.equals(TIPO_LIMPIEZA) && metrosCubicos <= 0) {
+            Toast.makeText(this, "Ingresa los metros cúbicos (debe ser mayor a 0)", Toast.LENGTH_LONG).show();
+            etMetrosCubicos.requestFocus();
+            return;
+        }
+
+        long precio = leerEntero(etPrecio.getText().toString());
 
         String tipo = tipoSeleccionado;
         String observaciones = etObservaciones.getText().toString().trim();
@@ -582,7 +639,9 @@ public class RegistrarServicioActivity extends AppCompatActivity {
                     tipo,
                     descripcionCompleta.toString().trim(),
                     fechaActual,
-                    false
+                    false,
+                    precio,
+                    metrosCubicos
             );
 
             if (resultado > 0) {
@@ -612,7 +671,9 @@ public class RegistrarServicioActivity extends AppCompatActivity {
                     clienteSeleccionadoNombre,
                     tipo,
                     descripcionCompleta.toString().trim(),
-                    false
+                    false,
+                    precio,
+                    metrosCubicos
             );
 
             if (filasAfectadas > 0) {
