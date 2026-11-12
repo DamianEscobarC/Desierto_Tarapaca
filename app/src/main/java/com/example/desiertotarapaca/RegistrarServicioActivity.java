@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
@@ -355,6 +356,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
 
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_seleccionar_banos, null);
         LinearLayout contenedor = dialogView.findViewById(R.id.contenedorListaBanosModal);
+        ScrollView scrollBanos = dialogView.findViewById(R.id.scrollBanosDisponibles);
         TextView btnCancelar = dialogView.findViewById(R.id.btnCancelarModalBanos);
         AppCompatButton btnConfirmar = dialogView.findViewById(R.id.btnConfirmarModalBanos);
 
@@ -431,6 +433,31 @@ public class RegistrarServicioActivity extends AppCompatActivity {
             });
 
             contenedor.addView(itemCard);
+        }
+
+        if (codigosBanos.size() > 3) {
+            contenedor.measure(
+                    View.MeasureSpec.makeMeasureSpec(
+                            getResources().getDisplayMetrics().widthPixels,
+                            View.MeasureSpec.AT_MOST
+                    ),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            );
+
+            int alturaMaxima = 0;
+
+            for (int i = 0; i < 3; i++) {
+                View tarjeta = contenedor.getChildAt(i);
+
+                alturaMaxima += tarjeta.getMeasuredHeight();
+
+                LinearLayout.LayoutParams params =
+                        (LinearLayout.LayoutParams) tarjeta.getLayoutParams();
+
+                alturaMaxima += params.topMargin + params.bottomMargin;
+            }
+
+            scrollBanos.getLayoutParams().height = alturaMaxima;
         }
 
         AlertDialog dialog = new AlertDialog.Builder(this)
