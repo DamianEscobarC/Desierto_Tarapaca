@@ -1,6 +1,7 @@
 package com.example.desiertotarapaca;
 
 import android.net.Uri;
+import android.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import android.content.Context;
 import android.content.Intent;
@@ -448,14 +449,23 @@ public class MainActivity extends AppCompatActivity {
 
                     if (!interna) {
                         checkBox.setChecked(false);
-                        Toast.makeText(
-                                this,
-                                "El servicio debe registrarse antes de completarse",
-                                Toast.LENGTH_LONG
-                        ).show();
+
+                        new AlertDialog.Builder(this)
+                                .setTitle("Servicio programado")
+                                .setMessage("¿Deseas registrar el trabajo realizado para completar esta tarea?")
+                                .setPositiveButton("Registrar servicio", (dialog, which) -> {
+                                    Intent intent = new Intent(
+                                            MainActivity.this,
+                                            RegistrarServicioActivity.class
+                                    );
+                                    intent.putExtra("ID_TAREA_PROGRAMADA", id);
+                                    startActivity(intent);
+                                })
+                                .setNegativeButton("Cancelar", null)
+                                .show();
+
                         return;
                     }
-
                     boolean exito = dbHelper.marcarTareaCompletada(id);
 
                     if (exito) {

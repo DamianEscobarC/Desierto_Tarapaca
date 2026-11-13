@@ -2,6 +2,7 @@ package com.example.desiertotarapaca;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.app.AlertDialog;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -85,6 +86,9 @@ public class RegistrarTareaActivity extends AppCompatActivity {
         btnVolverTarea.setOnClickListener(v -> finish());
         etTareaFecha.setOnClickListener(v -> mostrarDatePicker());
         etTareaHora.setOnClickListener(v -> mostrarTimePicker());
+        etTareaTipo.setFocusable(false);
+        etTareaTipo.setClickable(true);
+        etTareaTipo.setOnClickListener(v -> mostrarSelectorTipoServicio());
         btnGuardarTarea.setOnClickListener(v -> guardarTarea());
 
         btnSeleccionarClienteModal.setOnClickListener(v -> mostrarBottomSheetClientes());
@@ -167,6 +171,22 @@ public class RegistrarTareaActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private void mostrarSelectorTipoServicio() {
+        String[] opciones = {
+                "Limpieza de fosa",
+                "Envarillado",
+                "Arriendo de baños"
+        };
+
+        new AlertDialog.Builder(this)
+                .setTitle("Selecciona el tipo de servicio")
+                .setItems(opciones, (dialog, which) -> {
+                    etTareaTipo.setText(opciones[which]);
+                    etTareaTipo.setError(null);
+                })
+                .show();
+    }
+
     private void mostrarDatePicker() {
         Calendar cal = Calendar.getInstance();
         DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
@@ -210,7 +230,10 @@ public class RegistrarTareaActivity extends AppCompatActivity {
             return;
         }
 
-        if (!esInterna && tipo.isEmpty()) {
+        if (!esInterna &&
+                !tipo.equals("Limpieza de fosa") &&
+                !tipo.equals("Envarillado") &&
+                !tipo.equals("Arriendo de baños")) {
             etTareaTipo.setError("Indica el tipo de servicio");
             etTareaTipo.requestFocus();
             return;

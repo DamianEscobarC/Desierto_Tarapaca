@@ -623,7 +623,27 @@ public class HistorialActivity extends AppCompatActivity {
                                 })
                                 .show();
                     } else {
-                        mostrarDialogoEditarTarea(item);
+                        if (!completada) {
+                            new AlertDialog.Builder(this)
+                                    .setTitle("Servicio programado")
+                                    .setMessage("¿Deseas registrar este servicio para completar la tarea?")
+                                    .setPositiveButton("Registrar servicio", (dialog, which) -> {
+                                        Intent intent = new Intent(
+                                                HistorialActivity.this,
+                                                RegistrarServicioActivity.class
+                                        );
+                                        intent.putExtra("ID_TAREA_PROGRAMADA", item.id);
+                                        startActivity(intent);
+                                    })
+                                    .setNegativeButton("Cancelar", null)
+                                    .show();
+                        } else {
+                            new AlertDialog.Builder(this)
+                                    .setTitle("Servicio completado")
+                                    .setMessage("Esta tarea ya fue completada.")
+                                    .setPositiveButton("Aceptar", null)
+                                    .show();
+                        }
                     }
                 });
 

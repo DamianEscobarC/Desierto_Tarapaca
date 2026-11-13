@@ -3,6 +3,7 @@ package com.example.desiertotarapaca;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.Cursor;
+import android.content.ContentValues;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -46,6 +47,7 @@ public class RegistrarServicioActivity extends AppCompatActivity {
     private DbHelper dbHelper;
     private long idServicioAEditar = -1;
     private String numeroOtActual = "";
+    private long idTareaProgramada = -1;
 
     private String clienteSeleccionadoNombre = "";
     private double clienteLatitud = 0.0;
@@ -136,7 +138,70 @@ public class RegistrarServicioActivity extends AppCompatActivity {
             }
         }
 
+        if (intent != null && intent.hasExtra("ID_TAREA_PROGRAMADA")) {
+            idTareaProgramada = intent.getLongExtra("ID_TAREA_PROGRAMADA", -1);
+
+            if (idServicioAEditar == -1 && idTareaProgramada != -1) {
+                cargarTareaProgramada(idTareaProgramada);
+            }
+        }
+
         btnGuardarServicio.setOnClickListener(v -> guardarOActualizar());
+    }
+
+    private void cargarTareaProgramada(long idTarea) {
+        try (Cursor cursor = dbHelper.getReadableDatabase().query(
+                DbHelper.TABLA_TAREAS,
+                null,
+                DbHelper.COL_TAREA_ID + " = ? AND " +
+                        DbHelper.COL_TAREA_CATEGORIA + " = ? AND LOWER(" +
+                        DbHelper.COL_TAREA_ESTADO + ") <> ?",
+                new String[]{String.valueOf(idTarea), "SERVICIO_PROGRAMADO", "completada"},
+                null,
+                null,
+                null
+        )) {
+            if (!cursor.moveToFirst()) {
+                idTareaProgramada = -1;
+                Toast.makeText(this, "La tarea no está disponible", Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
+
+            int idxCliente = cursor.getColumnIndexOrThrow(DbHelper.COL_TAREA_CLIENTE);
+            int idxTipo = cursor.getColumnIndexOrThrow(DbHelper.COL_TAREA_TIPO);
+            int idxDetalles = cursor.getColumnIndexOrThrow(DbHelper.COL_TAREA_DETALLES);
+
+            String cliente = cursor.getString(idxCliente);
+            String tipo = cursor.getString(idxTipo);
+            String detalles = cursor.getString(idxDetalles);
+
+            clienteSeleccionadoNombre = cliente == null ? "" : cliente;
+
+            tvClienteServicioTexto.setText(clienteSeleccionadoNombre);
+            tvClienteServicioTexto.setTextColor(
+                    ContextCompat.getColor(this, R.color.text_main)
+            );
+
+            double[] coordenadas = dbHelper.obtenerCoordenadasCliente(clienteSeleccionadoNombre);
+
+            if (coordenadas != null) {
+                clienteLatitud = coordenadas[0];
+                clienteLongitud = coordenadas[1];
+
+                if (clienteLatitud != 0.0 || clienteLongitud != 0.0) {
+                    tvCoordenadasGps.setText(String.format(
+                            Locale.getDefault(),
+                            "%.4f, %.4f",
+                            clienteLatitud,
+                            clienteLongitud
+                    ));
+                }
+            }
+
+            seleccionarTipoDesdeTexto(tipo);
+            etObservaciones.setText(detalles == null ? "" : detalles);
+        }
     }
 
     private void mostrarBottomSheetClientes() {
@@ -766,6 +831,36 @@ public class RegistrarServicioActivity extends AppCompatActivity {
         }
     }
 
+    private boolean finalizarTareaProgramada(long idServicio) {
+        if (idTareaProgramada == -1) {
+            return true;
+        }
+
+        ContentValues valores = new ContentValues();
+        valores.put(DbHelper.COL_TAREA_ESTADO, "Completada");
+        valores.put(DbHelper.COL_TAREA_ID_SERVICIO, idServicio);
+
+        int filas = dbHelper.getWritableDatabase().update(
+                DbHelper.TABLA_TAREAS,
+                valores,
+                DbHelper.COL_TAREA_ID + " = ? AND " +
+                        DbHelper.COL_TAREA_CATEGORIA + " = ? AND LOWER(" +
+                        DbHelper.COL_TAREA_ESTADO + ") <> ?",
+                new String[]{
+                        String.valueOf(idTareaProgramada),
+                        "SERVICIO_PROGRAMADO",
+                        "completada"
+                }
+        );
+
+        if (filas > 0) {
+            AvisosTareas.cancelar(this, idTareaProgramada);
+            return true;
+        }
+
+        return false;
+    }
+
     private void mostrarConfirmacionGuardado(boolean esActualizacion) {
         String titulo = esActualizacion
                 ? "Servicio actualizado"
@@ -876,7 +971,15 @@ public class RegistrarServicioActivity extends AppCompatActivity {
                     } catch (Exception ignored) {}
                 }
 
-                mostrarConfirmacionGuardado(false);
+                if (finalizarTareaProgramada(resultado)) {
+                    mostrarConfirmacionGuardado(false);
+                } else {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Servicio guardado")
+                            .setMessage("El servicio se guardó, pero no se pudo completar la tarea programada. Revisa el historial antes de volver a registrarlo.")
+                            .setPositiveButton("Aceptar", (dialog, which) -> finish())
+                            .show();
+                }
             } else {
                 Toast.makeText(this, "Error al guardar en el dispositivo", Toast.LENGTH_SHORT).show();
             }
