@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +28,11 @@ public class RegistrarTareaActivity extends AppCompatActivity {
     private TextView tvClienteSeleccionadoTexto, tvUbicacionClienteInfo;
     private EditText etTareaTipo, etTareaFecha, etTareaHora;
     private AppCompatButton btnGuardarTarea;
+    private RadioGroup rgCategoriaTarea;
+    private RadioButton rbTareaInterna, rbServicioProgramado;
+    private LinearLayout seccionTareaInterna, seccionServicioProgramado;
+    private EditText etNombreTareaInterna, etDetallesTareaInterna;
+    private EditText etObservacionesProgramado;
     private DbHelper dbHelper;
 
     private String clienteSeleccionadoNombre = "";
@@ -47,6 +54,33 @@ public class RegistrarTareaActivity extends AppCompatActivity {
         etTareaFecha = findViewById(R.id.etTareaFecha);
         etTareaHora = findViewById(R.id.etTareaHora);
         btnGuardarTarea = findViewById(R.id.btnGuardarTarea);
+        rgCategoriaTarea = findViewById(R.id.rgCategoriaTarea);
+        rbTareaInterna = findViewById(R.id.rbTareaInterna);
+        rbServicioProgramado = findViewById(R.id.rbServicioProgramado);
+
+        seccionTareaInterna = findViewById(R.id.seccionTareaInterna);
+        seccionServicioProgramado = findViewById(R.id.seccionServicioProgramado);
+
+        etNombreTareaInterna = findViewById(R.id.etNombreTareaInterna);
+        etDetallesTareaInterna = findViewById(R.id.etDetallesTareaInterna);
+        etObservacionesProgramado = findViewById(R.id.etObservacionesProgramado);
+
+        rgCategoriaTarea.setOnCheckedChangeListener((group, checkedId) -> {
+            boolean esInterna = checkedId == R.id.rbTareaInterna;
+
+            seccionTareaInterna.setVisibility(esInterna ? View.VISIBLE : View.GONE);
+            seccionServicioProgramado.setVisibility(esInterna ? View.GONE : View.VISIBLE);
+        });
+
+        Calendar hoy = Calendar.getInstance();
+
+        etTareaFecha.setText(String.format(
+                Locale.getDefault(),
+                "%04d-%02d-%02d",
+                hoy.get(Calendar.YEAR),
+                hoy.get(Calendar.MONTH) + 1,
+                hoy.get(Calendar.DAY_OF_MONTH)
+        ));
 
         btnVolverTarea.setOnClickListener(v -> finish());
         etTareaFecha.setOnClickListener(v -> mostrarDatePicker());
@@ -152,27 +186,67 @@ public class RegistrarTareaActivity extends AppCompatActivity {
     }
 
     private void guardarTarea() {
-        if (clienteSeleccionadoNombre.isEmpty()) {
-            Toast.makeText(this, "Por favor selecciona un cliente de la lista", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        boolean esInterna = rbTareaInterna.isChecked();
 
-        String tipo = etTareaTipo.getText().toString().trim();
+        String categoria = esInterna ? "INTERNA" : "SERVICIO_PROGRAMADO";
+        String titulo = etNombreTareaInterna.getText().toString().trim();
+        String cliente = esInterna ? "" : clienteSeleccionadoNombre;
+        String tipo = esInterna ? "" : etTareaTipo.getText().toString().trim();
         String fecha = etTareaFecha.getText().toString().trim();
         String hora = etTareaHora.getText().toString().trim();
+        String detalles = esInterna
+                ? etDetallesTareaInterna.getText().toString().trim()
+                : etObservacionesProgramado.getText().toString().trim();
 
-        if (tipo.isEmpty() || fecha.isEmpty() || hora.isEmpty()) {
-            Toast.makeText(this, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show();
+        if (esInterna && titulo.isEmpty()) {
+            etNombreTareaInterna.setError("Ingresa el nombre de la tarea");
+            etNombreTareaInterna.requestFocus();
             return;
         }
 
-        boolean exito = dbHelper.insertarTarea(clienteSeleccionadoNombre, tipo, hora, fecha);
+        if (!esInterna && cliente.isEmpty()) {
+            tvClienteSeleccionadoTexto.setError("Selecciona un cliente");
+            Toast.makeText(this, "Selecciona un cliente", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!esInterna && tipo.isEmpty()) {
+            etTareaTipo.setError("Indica el tipo de servicio");
+            etTareaTipo.requestFocus();
+            return;
+        }
+
+        if (fecha.isEmpty()) {
+            etTareaFecha.setError("Selecciona una fecha");
+            Toast.makeText(this, "La fecha es obligatoria", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!esInterna && hora.isEmpty()) {
+            etTareaHora.setError("Selecciona una hora");
+            Toast.makeText(this, "La hora es obligatoria para servicios programados", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        boolean exito = dbHelper.insertarNuevaTarea(
+                categoria,
+                titulo,
+                cliente,
+                tipo,
+                fecha,
+                hora,
+                detalles
+        );
 
         if (exito) {
-            Toast.makeText(this, "Tarea registrada con éxito", Toast.LENGTH_SHORT).show();
-            finish();
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Tarea registrada")
+                    .setMessage("La tarea se guardó correctamente en este dispositivo.")
+                    .setPositiveButton("Aceptar", (dialog, which) -> finish())
+                    .setCancelable(false)
+                    .show();
         } else {
-            Toast.makeText(this, "Error al guardar la tarea", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No se pudo guardar la tarea", Toast.LENGTH_LONG).show();
         }
     }
 }
