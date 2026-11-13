@@ -54,6 +54,9 @@ public class HistorialActivity extends AppCompatActivity {
         public String hora;
         public String fecha;
         public String estado;
+        public String categoria;
+        public String titulo;
+        public String detalles;
 
         public RegistroTarea(long id, String cliente, String tipo, String hora, String fecha, String estado) {
             this.id = id;
@@ -62,6 +65,23 @@ public class HistorialActivity extends AppCompatActivity {
             this.hora = hora;
             this.fecha = fecha;
             this.estado = estado;
+        }
+
+        public RegistroTarea(
+                long id,
+                String cliente,
+                String tipo,
+                String hora,
+                String fecha,
+                String estado,
+                String categoria,
+                String titulo,
+                String detalles) {
+
+            this(id, cliente, tipo, hora, fecha, estado);
+            this.categoria = categoria;
+            this.titulo = titulo;
+            this.detalles = detalles;
         }
     }
 
@@ -224,7 +244,7 @@ public class HistorialActivity extends AppCompatActivity {
         listaTareas.clear();
         Cursor cursor = dbHelper.obtenerTodasLasTareas();
 
-        if (cursor != null && cursor.moveToFirst()) {
+        if (cursor != null) {
             int idxId = cursor.getColumnIndex(DbHelper.COL_TAREA_ID);
             int idxCli = cursor.getColumnIndex(DbHelper.COL_TAREA_CLIENTE);
             int idxTipo = cursor.getColumnIndex(DbHelper.COL_TAREA_TIPO);
@@ -232,7 +252,11 @@ public class HistorialActivity extends AppCompatActivity {
             int idxFecha = cursor.getColumnIndex(DbHelper.COL_TAREA_FECHA);
             int idxEstado = cursor.getColumnIndex(DbHelper.COL_TAREA_ESTADO);
 
-            do {
+            int idxCategoria = cursor.getColumnIndex(DbHelper.COL_TAREA_CATEGORIA);
+            int idxTitulo = cursor.getColumnIndex(DbHelper.COL_TAREA_TITULO);
+            int idxDetalles = cursor.getColumnIndex(DbHelper.COL_TAREA_DETALLES);
+
+            while (cursor.moveToNext()) {
                 long id = (idxId != -1) ? cursor.getLong(idxId) : 0;
                 String cli = (idxCli != -1) ? cursor.getString(idxCli) : "";
                 String tipo = (idxTipo != -1) ? cursor.getString(idxTipo) : "";
@@ -240,8 +264,27 @@ public class HistorialActivity extends AppCompatActivity {
                 String fecha = (idxFecha != -1) ? cursor.getString(idxFecha) : "";
                 String estado = (idxEstado != -1) ? cursor.getString(idxEstado) : "pendiente";
 
-                listaTareas.add(new RegistroTarea(id, cli, tipo, hora, fecha, estado));
-            } while (cursor.moveToNext());
+                String categoria = (idxCategoria != -1)
+                        ? cursor.getString(idxCategoria) : "SERVICIO_PROGRAMADO";
+
+                String titulo = (idxTitulo != -1)
+                        ? cursor.getString(idxTitulo) : "";
+
+                String detalles = (idxDetalles != -1)
+                        ? cursor.getString(idxDetalles) : "";
+
+                listaTareas.add(new RegistroTarea(
+                        id,
+                        cli,
+                        tipo,
+                        hora,
+                        fecha,
+                        estado,
+                        categoria,
+                        titulo,
+                        detalles
+                ));
+            }
 
             cursor.close();
         }
@@ -424,9 +467,11 @@ public class HistorialActivity extends AppCompatActivity {
             boolean completada = item.estado != null && item.estado.equalsIgnoreCase("Completada");
 
             boolean coincide = filtro.isEmpty() ||
-                    item.cliente.toLowerCase().contains(filtro) ||
-                    item.tipo.toLowerCase().contains(filtro) ||
-                    item.fecha.toLowerCase().contains(filtro);
+                    (item.cliente != null && item.cliente.toLowerCase().contains(filtro)) ||
+                    (item.tipo != null && item.tipo.toLowerCase().contains(filtro)) ||
+                    (item.fecha != null && item.fecha.toLowerCase().contains(filtro)) ||
+                    (item.titulo != null && item.titulo.toLowerCase().contains(filtro)) ||
+                    (item.detalles != null && item.detalles.toLowerCase().contains(filtro));
 
             if (coincide) {
                 visibles++;
@@ -452,7 +497,13 @@ public class HistorialActivity extends AppCompatActivity {
                 ));
 
                 TextView tvTitulo = new TextView(this);
-                tvTitulo.setText(item.cliente);
+
+                boolean esInterna = "INTERNA".equalsIgnoreCase(item.categoria);
+
+                tvTitulo.setText(
+                        esInterna ? item.titulo : item.cliente
+                );
+
                 tvTitulo.setTextSize(14f);
                 tvTitulo.setTypeface(null, Typeface.BOLD);
                 tvTitulo.setTextColor(colorMain);
@@ -479,20 +530,43 @@ public class HistorialActivity extends AppCompatActivity {
                 card.addView(headerCard);
 
                 TextView tvTipo = new TextView(this);
-                tvTipo.setText("🛠 " + item.tipo);
+
+                tvTipo.setText(
+                        esInterna
+                                ? "🛠 Tarea interna"
+                                : "📋 Servicio programado · " + item.tipo
+                );
+
                 tvTipo.setTextSize(12f);
                 tvTipo.setTextColor(colorMuted);
                 tvTipo.setPadding(0, dpToPx(4), 0, 0);
                 card.addView(tvTipo);
 
                 TextView tvFechaHora = new TextView(this);
-                tvFechaHora.setText("📅 " + item.fecha + " · ⏰ " + item.hora);
+
+                tvFechaHora.setText(
+                        "📅 " + item.fecha +
+                                ((item.hora == null || item.hora.isEmpty())
+                                        ? ""
+                                        : " · ⏰ " + item.hora)
+                );
+
                 tvFechaHora.setTextSize(11f);
                 tvFechaHora.setTextColor(colorMuted);
                 tvFechaHora.setPadding(0, dpToPx(2), 0, 0);
                 card.addView(tvFechaHora);
 
-                if (!completada) {
+                if (item.detalles != null && !item.detalles.trim().isEmpty()) {
+                    TextView tvDetalles = new TextView(this);
+                    tvDetalles.setText(item.detalles);
+                    tvDetalles.setTextSize(12f);
+                    tvDetalles.setTextColor(colorMuted);
+                    tvDetalles.setPadding(0, dpToPx(6), 0, 0);
+
+                    card.addView(tvDetalles);
+                }
+
+                if (!completada && esInterna) {
                     AppCompatButton btnCompletarTarea = new AppCompatButton(this);
                     btnCompletarTarea.setText("✓ Completar Tarea");
                     btnCompletarTarea.setTextColor(Color.WHITE);
@@ -519,7 +593,39 @@ public class HistorialActivity extends AppCompatActivity {
                     card.addView(btnCompletarTarea);
                 }
 
-                card.setOnClickListener(v -> mostrarDialogoEditarTarea(item));
+                card.setOnClickListener(v -> {
+                    if (esInterna) {
+                        new AlertDialog.Builder(this)
+                                .setTitle(item.titulo)
+                                .setMessage(
+                                        "Tarea interna\n\n" +
+                                                "Fecha: " + item.fecha + "\n" +
+                                                "Hora: " + ((item.hora == null || item.hora.isEmpty())
+                                                ? "Sin hora" : item.hora) + "\n" +
+                                                "Detalles: " + ((item.detalles == null || item.detalles.isEmpty())
+                                                ? "Sin detalles" : item.detalles)
+                                )
+                                .setPositiveButton("Cerrar", null)
+                                .setNegativeButton("Eliminar", (dialog, which) -> {
+                                    new AlertDialog.Builder(this)
+                                            .setTitle("Eliminar tarea")
+                                            .setMessage("¿Seguro que deseas eliminar esta tarea interna?")
+                                            .setPositiveButton("Eliminar", (d, opcion) -> {
+                                                if (dbHelper.eliminarTarea(item.id)) {
+                                                    recargarDatos();
+                                                    Toast.makeText(this, "Tarea eliminada", Toast.LENGTH_SHORT).show();
+                                                } else {
+                                                    Toast.makeText(this, "No se pudo eliminar", Toast.LENGTH_SHORT).show();
+                                                }
+                                            })
+                                            .setNegativeButton("Cancelar", null)
+                                            .show();
+                                })
+                                .show();
+                    } else {
+                        mostrarDialogoEditarTarea(item);
+                    }
+                });
 
                 contenedorHistorial.addView(card);
             }
