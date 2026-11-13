@@ -12,7 +12,7 @@ import java.util.List;
 public class DbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DesiertoTarapaca.db";
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 9;
     private final Context appContext;
 
     public static final String TABLA_SERVICIOS = "servicios";
@@ -43,6 +43,10 @@ public class DbHelper extends SQLiteOpenHelper {
     public static final String COL_TAREA_HORA = "hora";
     public static final String COL_TAREA_FECHA = "fecha";
     public static final String COL_TAREA_ESTADO = "estado";
+    public static final String COL_TAREA_CATEGORIA = "categoria";
+    public static final String COL_TAREA_TITULO = "titulo";
+    public static final String COL_TAREA_DETALLES = "detalles";
+    public static final String COL_TAREA_ID_SERVICIO = "id_servicio";
 
     public static final String TABLA_INVENTARIO = "inventario_quimicos";
     public static final String COL_QUIM_ID = "id";
@@ -106,9 +110,12 @@ public class DbHelper extends SQLiteOpenHelper {
                 COL_TAREA_TIPO + " TEXT, " +
                 COL_TAREA_HORA + " TEXT, " +
                 COL_TAREA_FECHA + " TEXT, " +
-                COL_TAREA_ESTADO + " TEXT DEFAULT 'pendiente')";
+                COL_TAREA_ESTADO + " TEXT DEFAULT 'pendiente', " +
+                COL_TAREA_CATEGORIA + " TEXT DEFAULT 'SERVICIO_PROGRAMADO', " +
+                COL_TAREA_TITULO + " TEXT, " +
+                COL_TAREA_DETALLES + " TEXT, " +
+                COL_TAREA_ID_SERVICIO + " INTEGER)";
         db.execSQL(crearTablaTareas);
-
         String crearTablaInventario = "CREATE TABLE " + TABLA_INVENTARIO + " (" +
                 COL_QUIM_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COL_QUIM_NOMBRE + " TEXT, " +
@@ -141,13 +148,20 @@ public class DbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLA_SERVICIOS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLA_USUARIOS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLA_TAREAS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLA_INVENTARIO);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLA_CLIENTES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLA_BANOS);
-        onCreate(db);
+        if (oldVersion == 8 && newVersion >= 9) {
+            db.execSQL("ALTER TABLE " + TABLA_TAREAS +
+                    " ADD COLUMN " + COL_TAREA_CATEGORIA +
+                    " TEXT DEFAULT 'SERVICIO_PROGRAMADO'");
+
+            db.execSQL("ALTER TABLE " + TABLA_TAREAS +
+                    " ADD COLUMN " + COL_TAREA_TITULO + " TEXT");
+
+            db.execSQL("ALTER TABLE " + TABLA_TAREAS +
+                    " ADD COLUMN " + COL_TAREA_DETALLES + " TEXT");
+
+            db.execSQL("ALTER TABLE " + TABLA_TAREAS +
+                    " ADD COLUMN " + COL_TAREA_ID_SERVICIO + " INTEGER");
+        }
     }
 
     public boolean existeCorreo(String correo) {
@@ -335,6 +349,46 @@ public class DbHelper extends SQLiteOpenHelper {
 
         int filas = db.update(TABLA_USUARIOS, cv, COL_USER_CORREO + " = ?", new String[]{correo.toLowerCase().trim()});
         return filas > 0;
+    }
+
+    public boolean insertarNuevaTarea(
+            String categoria,
+            String titulo,
+            String cliente,
+            String tipo,
+            String fecha,
+            String hora,
+            String detalles) {
+
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues cv = new ContentValues();
+
+        cv.put(COL_TAREA_CATEGORIA, categoria);
+        cv.put(COL_TAREA_TITULO, titulo);
+        cv.put(COL_TAREA_CLIENTE, cliente);
+        cv.put(COL_TAREA_TIPO, tipo);
+        cv.put(COL_TAREA_FECHA, fecha);
+        cv.put(COL_TAREA_HORA, hora);
+        cv.put(COL_TAREA_DETALLES, detalles);
+        cv.put(COL_TAREA_ESTADO, "pendiente");
+
+        long resultado = db.insert(TABLA_TAREAS, null, cv);
+
+        if (resultado != -1 && !hora.isEmpty()) {
+            String nombreAviso = categoria.equals("INTERNA") ? titulo : cliente;
+            String actividadAviso = categoria.equals("INTERNA") ? titulo : tipo;
+
+            AvisosTareas.programar(
+                    appContext,
+                    resultado,
+                    nombreAviso,
+                    actividadAviso,
+                    hora,
+                    fecha
+            );
+        }
+
+        return resultado != -1;
     }
 
     public boolean insertarTarea(String cliente, String tipo, String hora, String fecha) {

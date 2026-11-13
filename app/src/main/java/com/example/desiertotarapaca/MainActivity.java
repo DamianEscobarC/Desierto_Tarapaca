@@ -1,6 +1,7 @@
 package com.example.desiertotarapaca;
 
 import android.net.Uri;
+import android.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +22,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import android.widget.CheckBox;
+import android.widget.ScrollView;
 
 
 import java.text.SimpleDateFormat;
@@ -42,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView tvTituloHoyTareas, tvCantidadTareasPendientes;
     private LinearLayout contenedorListaTareas;
+    private ScrollView scrollListaTareas;
 
     private LinearLayout cardRegistrarServicio, cardConsultarRegistros, cardInventario;
     private LinearLayout cardDirectorioClientes, cardMapaGps;
@@ -123,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
         tvTituloHoyTareas = findViewById(R.id.tvTituloHoyTareas);
         tvCantidadTareasPendientes = findViewById(R.id.tvCantidadTareasPendientes);
         contenedorListaTareas = findViewById(R.id.contenedorListaTareas);
+        scrollListaTareas = findViewById(R.id.scrollListaTareas);
 
         cardRegistrarServicio = findViewById(R.id.cardRegistrarServicio);
         cardConsultarRegistros = findViewById(R.id.cardConsultarRegistros);
@@ -313,103 +318,227 @@ public class MainActivity extends AppCompatActivity {
 
         contenedorListaTareas.removeAllViews();
 
-        SimpleDateFormat sdfDb = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat sdfDb =
+                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
         String hoyIso = sdfDb.format(Calendar.getInstance().getTime());
 
         if (tvTituloHoyTareas != null) {
-            if (fechaIso.equals(hoyIso)) {
-                tvTituloHoyTareas.setText("HOY · " + tituloDia);
-            } else {
-                tvTituloHoyTareas.setText("TAREAS · " + tituloDia);
-            }
+            tvTituloHoyTareas.setText(
+                    (fechaIso.equals(hoyIso) ? "HOY · " : "TAREAS · ") + tituloDia
+            );
         }
 
         Cursor cursor = dbHelper.obtenerTareasPorFecha(fechaIso);
-        int tareasPendientes = 0;
+        int pendientes = 0;
 
         if (cursor != null) {
-            if (cursor.getCount() == 0) {
-                TextView tvVacio = new TextView(this);
-                tvVacio.setText("No hay tareas programadas para este día.");
-                tvVacio.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
-                tvVacio.setTextSize(13);
-                tvVacio.setPadding(0, 10, 0, 10);
-                contenedorListaTareas.addView(tvVacio);
-            } else {
-                while (cursor.moveToNext()) {
-                    int idxCliente = cursor.getColumnIndex("cliente");
-                    int idxTipo = cursor.getColumnIndex("tipo");
-                    int idxHora = cursor.getColumnIndex("hora");
-                    int idxEstado = cursor.getColumnIndex("estado");
+            while (cursor.moveToNext()) {
+                int idxId = cursor.getColumnIndex(DbHelper.COL_TAREA_ID);
+                int idxCategoria = cursor.getColumnIndex(DbHelper.COL_TAREA_CATEGORIA);
+                int idxTitulo = cursor.getColumnIndex(DbHelper.COL_TAREA_TITULO);
+                int idxCliente = cursor.getColumnIndex(DbHelper.COL_TAREA_CLIENTE);
+                int idxTipo = cursor.getColumnIndex(DbHelper.COL_TAREA_TIPO);
+                int idxHora = cursor.getColumnIndex(DbHelper.COL_TAREA_HORA);
+                int idxEstado = cursor.getColumnIndex(DbHelper.COL_TAREA_ESTADO);
 
-                    String cliente = idxCliente != -1 ? cursor.getString(idxCliente) : "";
-                    String tipo = idxTipo != -1 ? cursor.getString(idxTipo) : "";
-                    String hora = idxHora != -1 ? cursor.getString(idxHora) : "";
-                    String estado = idxEstado != -1 ? cursor.getString(idxEstado) : "pendiente";
+                long id = cursor.getLong(idxId);
 
-                    boolean completada = estado.equalsIgnoreCase("Completada");
-                    if (!completada) {
-                        tareasPendientes++;
-                    }
+                String categoria = idxCategoria >= 0
+                        ? cursor.getString(idxCategoria) : "SERVICIO_PROGRAMADO";
 
-                    LinearLayout fila = new LinearLayout(this);
-                    fila.setOrientation(LinearLayout.HORIZONTAL);
-                    fila.setGravity(android.view.Gravity.CENTER_VERTICAL);
-                    fila.setLayoutParams(new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT));
-                    fila.setPadding(0, dpToPx(5), 0, dpToPx(5));
+                String titulo = idxTitulo >= 0
+                        ? cursor.getString(idxTitulo) : "";
 
-                    TextView tvHoraItem = new TextView(this);
-                    tvHoraItem.setText(hora);
-                    tvHoraItem.setTextColor(completada ? ContextCompat.getColor(this, R.color.text_muted) : ContextCompat.getColor(this, R.color.text_main));
-                    tvHoraItem.setTextSize(13);
-                    tvHoraItem.setLayoutParams(new LinearLayout.LayoutParams(dpToPx(52), LinearLayout.LayoutParams.WRAP_CONTENT));
+                String cliente = idxCliente >= 0
+                        ? cursor.getString(idxCliente) : "";
 
-                    TextView tvClienteItem = new TextView(this);
-                    tvClienteItem.setText(cliente);
-                    tvClienteItem.setTextColor(completada ? ContextCompat.getColor(this, R.color.text_muted) : ContextCompat.getColor(this, R.color.text_main));
-                    tvClienteItem.setTextSize(13);
-                    if (completada) {
-                        tvClienteItem.setPaintFlags(tvClienteItem.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                    }
-                    tvClienteItem.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+                String tipo = idxTipo >= 0
+                        ? cursor.getString(idxTipo) : "";
 
-                    TextView tvTipoItem = new TextView(this);
-                    tvTipoItem.setText(tipo);
-                    tvTipoItem.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
-                    tvTipoItem.setTextSize(12);
+                String hora = idxHora >= 0
+                        ? cursor.getString(idxHora) : "";
 
-                    fila.addView(tvHoraItem);
-                    fila.addView(tvClienteItem);
-                    fila.addView(tvTipoItem);
+                String estado = idxEstado >= 0
+                        ? cursor.getString(idxEstado) : "pendiente";
 
-                    if (completada) {
-                        TextView tvBadge = new TextView(this);
-                        tvBadge.setText("✓ Hecho");
-                        tvBadge.setTextColor(Color.parseColor("#137333"));
-                        tvBadge.setBackgroundColor(Color.parseColor("#E6F4EA"));
-                        tvBadge.setTextSize(10f);
-                        tvBadge.setTypeface(null, Typeface.BOLD);
-                        tvBadge.setPadding(dpToPx(6), dpToPx(2), dpToPx(6), dpToPx(2));
+                boolean interna = "INTERNA".equalsIgnoreCase(categoria);
+                boolean completada = "Completada".equalsIgnoreCase(estado);
 
-                        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                        badgeParams.setMarginStart(dpToPx(6));
-                        tvBadge.setLayoutParams(badgeParams);
+                if (!completada) pendientes++;
 
-                        fila.addView(tvBadge);
-                    }
+                String nombre = interna ? titulo : cliente;
+                String subtitulo = interna ? "Tarea interna" : tipo;
 
-                    contenedorListaTareas.addView(fila);
+                if (nombre == null || nombre.trim().isEmpty()) {
+                    nombre = interna ? "Tarea interna" : "Servicio programado";
                 }
+
+                if (subtitulo == null) subtitulo = "";
+                if (hora == null || hora.trim().isEmpty()) {
+                    hora = "Sin hora";
+                }
+
+                LinearLayout tarjeta = new LinearLayout(this);
+                tarjeta.setOrientation(LinearLayout.HORIZONTAL);
+                tarjeta.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                tarjeta.setBackgroundResource(R.drawable.bg_input_field);
+                tarjeta.setPadding(
+                        dpToPx(14),
+                        dpToPx(12),
+                        dpToPx(12),
+                        dpToPx(12)
+                );
+
+                LinearLayout.LayoutParams tarjetaParams =
+                        new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                dpToPx(92)
+                        );
+
+                tarjetaParams.setMargins(0, 0, 0, dpToPx(8));
+                tarjeta.setLayoutParams(tarjetaParams);
+
+                LinearLayout informacion = new LinearLayout(this);
+                informacion.setOrientation(LinearLayout.VERTICAL);
+                informacion.setLayoutParams(
+                        new LinearLayout.LayoutParams(0, -2, 1f)
+                );
+
+                TextView tvNombre = new TextView(this);
+                tvNombre.setText(nombre);
+                tvNombre.setTextSize(15f);
+                tvNombre.setTypeface(null, Typeface.BOLD);
+                tvNombre.setTextColor(
+                        ContextCompat.getColor(this, R.color.text_main)
+                );
+                tvNombre.setMaxLines(2);
+
+                TextView tvSubtitulo = new TextView(this);
+                tvSubtitulo.setText(subtitulo);
+                tvSubtitulo.setTextSize(12f);
+                tvSubtitulo.setTextColor(
+                        ContextCompat.getColor(this, R.color.text_muted)
+                );
+
+                TextView tvHora = new TextView(this);
+                tvHora.setText("⏰ " + hora);
+                tvHora.setTextSize(12f);
+                tvHora.setTextColor(
+                        ContextCompat.getColor(this, R.color.text_muted)
+                );
+
+                informacion.addView(tvNombre);
+                informacion.addView(tvSubtitulo);
+                informacion.addView(tvHora);
+
+                CheckBox checkBox = new CheckBox(this);
+                checkBox.setChecked(completada);
+                checkBox.setContentDescription("Completar " + nombre);
+
+                checkBox.setOnClickListener(v -> {
+                    if (completada) {
+                        checkBox.setChecked(true);
+                        Toast.makeText(
+                                this,
+                                "La tarea ya está completada",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                        return;
+                    }
+
+                    if (!interna) {
+                        checkBox.setChecked(false);
+
+                        new AlertDialog.Builder(this)
+                                .setTitle("Servicio programado")
+                                .setMessage("¿Deseas registrar el trabajo realizado para completar esta tarea?")
+                                .setPositiveButton("Registrar servicio", (dialog, which) -> {
+                                    Intent intent = new Intent(
+                                            MainActivity.this,
+                                            RegistrarServicioActivity.class
+                                    );
+                                    intent.putExtra("ID_TAREA_PROGRAMADA", id);
+                                    startActivity(intent);
+                                })
+                                .setNegativeButton("Cancelar", null)
+                                .show();
+
+                        return;
+                    }
+                    boolean exito = dbHelper.marcarTareaCompletada(id);
+
+                    if (exito) {
+                        cargarTareasPorFecha(fechaIso, tituloDia);
+                    } else {
+                        checkBox.setChecked(false);
+                        Toast.makeText(
+                                this,
+                                "No se pudo completar la tarea",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                });
+
+                tarjeta.addView(informacion);
+                tarjeta.addView(checkBox);
+
+                contenedorListaTareas.addView(tarjeta);
             }
+
             cursor.close();
         }
 
-        if (tvCantidadTareasPendientes != null) {
-            tvCantidadTareasPendientes.setText(tareasPendientes + (tareasPendientes == 1 ? " tarea pendiente" : " tareas pendientes"));
+        if (contenedorListaTareas.getChildCount() == 0) {
+            TextView vacio = new TextView(this);
+            vacio.setText("No hay tareas programadas para este día.");
+            vacio.setTextColor(
+                    ContextCompat.getColor(this, R.color.text_muted)
+            );
+            vacio.setPadding(0, dpToPx(12), 0, dpToPx(12));
+            contenedorListaTareas.addView(vacio);
         }
+
+        if (tvCantidadTareasPendientes != null) {
+            tvCantidadTareasPendientes.setText(
+                    pendientes == 1
+                            ? "1 tarea pendiente"
+                            : pendientes + " tareas pendientes"
+            );
+        }
+
+        scrollListaTareas.post(() -> {
+            int cantidad = contenedorListaTareas.getChildCount();
+
+            int alturaMaxima = dpToPx(300);
+
+            int alturaContenido = 0;
+
+            for (int i = 0; i < Math.min(cantidad, 3); i++) {
+                View tarjeta = contenedorListaTareas.getChildAt(i);
+
+                alturaContenido += tarjeta.getHeight();
+
+                android.view.ViewGroup.LayoutParams lp = tarjeta.getLayoutParams();
+
+                if (lp instanceof LinearLayout.LayoutParams) {
+                    LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) lp;
+                    alturaContenido += params.topMargin + params.bottomMargin;
+                }
+            }
+
+            android.view.ViewGroup.LayoutParams scrollParams =
+                    scrollListaTareas.getLayoutParams();
+
+            scrollParams.height = Math.min(alturaContenido, alturaMaxima);
+
+            if (scrollParams.height <= 0) {
+                scrollParams.height = alturaMaxima;
+            }
+
+            scrollListaTareas.setLayoutParams(scrollParams);
+            scrollListaTareas.scrollTo(0, 0);
+        });
     }
 
     private void cargarTareasPendientesHoy() {

@@ -51,10 +51,92 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="DETALLES DE LA TAREA "
+                android:text="TIPO DE TAREA"
                 android:textColor="@color/text_muted"
                 android:textSize="11sp"
                 android:textStyle="bold" />
+
+            <RadioGroup
+                android:id="@+id/rgCategoriaTarea"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rbTareaInterna"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="Tarea interna"
+                    android:textSize="13sp" />
+
+                <RadioButton
+                    android:id="@+id/rbServicioProgramado"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Servicio programado"
+                    android:textSize="13sp" />
+            </RadioGroup>
+
+            <LinearLayout
+                android:id="@+id/seccionTareaInterna"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="NOMBRE DE LA TAREA"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etNombreTareaInterna"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="Ej: Revisar camión"
+                    android:inputType="textCapSentences"
+                    android:paddingHorizontal="14dp"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="DETALLES (OPCIONAL)"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etDetallesTareaInterna"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_input_field"
+                    android:gravity="top|start"
+                    android:hint="Información adicional..."
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:padding="12dp"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/seccionServicioProgramado"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -127,6 +209,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:text="OBSERVACIONES (OPCIONAL)"
+                android:textColor="@color/text_muted"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etObservacionesProgramado"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_input_field"
+                android:gravity="top|start"
+                android:hint="Indicaciones para el servicio..."
+                android:inputType="textCapSentences|textMultiLine"
+                android:padding="12dp"
+                android:textColor="@color/text_main"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:text="FECHA"
                 android:textColor="@color/text_muted"
                 android:textSize="11sp"
@@ -149,7 +255,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="HORA ESTIMADA"
+                android:text="HORA (OPCIONAL PARA TAREAS INTERNAS)"
                 android:textColor="@color/text_muted"
                 android:textSize="11sp"
                 android:textStyle="bold" />
